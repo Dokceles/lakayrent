@@ -4,8 +4,8 @@
  * Les données vivent dans une feuille Google (un onglet par table) et le site
  * les relit au format CSV. Installation pas à pas : voir README.md.
  *
- * 1. Créez une feuille Google, puis Extensions > Apps Script.
- * 2. Collez ce fichier, remplacez CLIENT_ID ci-dessous.
+ * 1. Créez un projet sur script.google.com (ou depuis une feuille : Extensions > Apps Script).
+ * 2. Collez ce fichier, vérifiez CLIENT_ID ci-dessous.
  * 3. Exécutez setup() une fois (accepte les autorisations).
  * 4. Déployer > Nouveau déploiement > Application Web
  *      Exécuter en tant que : Moi    Accès : Tout le monde
@@ -34,8 +34,20 @@ const PUBLIC_COLS = SHEETS.Annonces.filter(function (c) { return c !== "propriet
 const TYPES = ["Maison", "Appartement", "Villa", "Bungalow", "Studio", "Terrain"];
 
 /* ======================= installation ======================= */
+// La feuille de données : celle à laquelle le script est rattaché, sinon une feuille créée par setup()
+function ss_() {
+  const bound = SpreadsheetApp.getActiveSpreadsheet();
+  if (bound) return bound;
+  const props = PropertiesService.getScriptProperties();
+  const id = props.getProperty("SHEET_ID");
+  if (id) return SpreadsheetApp.openById(id);
+  const created = SpreadsheetApp.create("LakayRent — données");
+  props.setProperty("SHEET_ID", created.getId());
+  return created;
+}
+
 function setup() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = ss_();
   Object.keys(SHEETS).forEach(function (name) {
     let sh = ss.getSheetByName(name);
     if (!sh) sh = ss.insertSheet(name);
@@ -47,8 +59,10 @@ function setup() {
     // Tout en texte brut : les dates, prix et numéros restent exactement comme le site les envoie
     sh.getRange(1, 1, sh.getMaxRows(), SHEETS[name].length).setNumberFormat("@");
   });
+  const first = ss.getSheetByName("Feuille 1") || ss.getSheetByName("Sheet1");
+  if (first && ss.getSheets().length > 1) ss.deleteSheet(first);
   photoFolder_();
-  Logger.log("LakayRent est prêt. Déployez maintenant en Application Web.");
+  Logger.log("LakayRent est prêt. Feuille : " + ss.getUrl());
 }
 
 /* ======================= points d'entrée ======================= */
@@ -270,7 +284,7 @@ function savePhoto_(dataUrl, name) {
 
 /* ======================= outils feuille ======================= */
 function sheet_(name) {
-  const sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
+  const sh = ss_().getSheetByName(name);
   if (!sh) throw new Error("Onglet « " + name + " » manquant : exécutez setup().");
   return sh;
 }
@@ -318,3 +332,17 @@ function num_(v, min, max) { const n = Math.round(Number(v)); return isFinite(n)
 function validRole_(r) { return r === "proprietaire" || r === "locataire"; }
 function codeErr_(msg, code) { const e = new Error(msg); e.code = code; return e; }
 function json_(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+
+/* Importe les annonces d'exemple du site (à lancer une seule fois, facultatif) */
+function importerExemples() {
+  const csv = UrlFetchApp.fetch("https://dokceles.github.io/lakayrent/data/annonces.csv").getContentText();
+  const rows = Utilities.parseCsv(csv);
+  const head = rows.shift();
+  const sh = sheet_("Annonces");
+  const existing = readAll_("Annonces").map(function (r) { return r.id; });
+  rows.forEach(function (r) {
+    const o = {}; head.forEach(function (h, i) { o[h] = r[i]; });
+    if (existing.indexOf(o.id) < 0) appendObj_(sh, o);
+  });
+  Logger.log(rows.length + " annonces d'exemple importées.");
+}
