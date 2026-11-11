@@ -1,0 +1,40 @@
+name: Télécharger les photos
+
+# Télécharge les photos listées dans assets/img/photos.txt (licence Unsplash)
+# en deux tailles : grande (photos/) et vignette (photos/sm/), puis les ajoute au dépôt.
+on:
+  workflow_dispatch:
+  push:
+    paths: ["assets/img/photos.txt"]
+
+permissions:
+  contents: write
+
+jobs:
+  photos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Télécharger
+        run: |
+          mkdir -p assets/img/photos/sm
+          grep -v '^#' assets/img/photos.txt | while read -r name id; do
+            [ -z "$name" ] && continue
+            base="https://images.unsplash.com/$id"
+            if [[ "$name" == hero* ]]; then
+              curl -fsSL "$base?w=3840&q=78&fm=jpg&fit=max" -o "assets/img/photos/$name-4k.jpg"
+              curl -fsSL "$base?w=1920&q=80&fm=jpg&fit=max" -o "assets/img/photos/$name.jpg"
+            else
+              curl -fsSL "$base?w=1800&q=80&fm=jpg&fit=max" -o "assets/img/photos/$name.jpg"
+            fi
+            curl -fsSL "$base?w=720&h=480&q=72&fm=jpg&fit=crop&crop=entropy" -o "assets/img/photos/sm/$name.jpg"
+            echo "ok $name"
+          done
+          du -sh assets/img/photos
+      - name: Enregistrer
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898283+github-actions[bot]@users.noreply.github.com"
+          git add assets/img/photos
+          git diff --cached --quiet || git commit -m "Photos des annonces (Unsplash)"
+          git push
