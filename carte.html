@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="assets/css/style.css?v=7">
+<link rel="stylesheet" href="assets/css/style.css?v=8">
 <style>
 .map-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start;padding:22px 0 60px}
 @media (max-width:960px){.map-layout{grid-template-columns:1fr}}
@@ -17,6 +17,7 @@
 #map{height:min(72vh,680px);min-height:440px;width:100%}
 .map-tools{position:absolute;top:14px;left:14px;right:14px;z-index:500;display:flex;gap:10px;flex-wrap:wrap;pointer-events:none}
 .map-tools>*{pointer-events:auto}
+.map-tools .seg button{white-space:nowrap}
 .map-tools .seg{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:var(--shadow-sm)}
 .map-tools select{border:0;border-radius:999px;padding:10px 14px;font-weight:600;font-size:14px;background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm)}
 .legend{position:absolute;left:14px;bottom:14px;z-index:500;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-radius:16px;padding:10px 14px;font-size:12.5px;box-shadow:var(--shadow-sm);color:var(--muted)}
@@ -84,8 +85,8 @@
 </main>
 <footer id="site-footer"></footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<script src="assets/js/config.js?v=7"></script>
-<script src="assets/js/core.js?v=7"></script>
+<script src="assets/js/config.js?v=8"></script>
+<script src="assets/js/core.js?v=8"></script>
 <script>
 (function(){
   const L_=Lakay,$=L_.$,$$=L_.$$,esc=L_.esc;
@@ -94,10 +95,12 @@
   const st={per:"mois",type:""};
   $("#mType").insertAdjacentHTML("beforeend",L_.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));
 
-  const map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView([18.85,-72.85],8);
-  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:18,subdomains:"abcd",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+  const map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView([18.95,-72.8],8);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
   map.zoomControl.setPosition("bottomright");
-  const cityLayer=L.layerGroup().addTo(map), pinLayer=L.layerGroup();
+  const cityLayer=L.layerGroup(), metroLayer=L.layerGroup().addTo(map), pinLayer=L.layerGroup();
+  // Communes de l'agglomération regroupées quand on voit tout le pays
+  const METRO=["Port-au-Prince","Delmas","Pétion-Ville","Tabarre","Croix-des-Bouquets","Carrefour","Kenscoff"], METRO_C=[18.535,-72.31];
 
   // Position stable d'une annonce autour du centre de sa ville (selon son id)
   function jitter(id,[lat,lng]){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;const a=(h%360)*Math.PI/180,r=0.004+((h>>9)%100)/100*0.018;return[lat+Math.sin(a)*r,lng+Math.cos(a)*r];}
@@ -114,15 +117,20 @@
     const lo=rows.length?Math.min(...rows.map(r=>r.med)):0, hi=rows.length?Math.max(...rows.map(r=>r.med)):1;
     const t=v=>hi>lo?Math.log(v/lo)/Math.log(hi/lo):0.5;
     const unit=st.per==="nuit"?"nuit":"mois";
-    cityLayer.clearLayers();pinLayer.clearLayers();
-    rows.forEach(r=>{
+    cityLayer.clearLayers();pinLayer.clearLayers();metroLayer.clearLayers();
+    const bubble=(layer,r,at,zoomTo)=>{
       const size=Math.round(46+Math.min(34,r.n*8));
       const icon=L.divIcon({className:"",iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div class="city-bubble" style="width:${size}px;height:${size}px;background:${color(t(r.med))}"><div>${L_.money(r.med)}<small>${r.n} annonce${r.n>1?"s":""}</small></div></div>`});
-      const m=L.marker(COORDS[r.v],{icon,title:r.v,keyboard:true});
-      m.bindPopup(`<div class="pop-city"><h4>${esc(r.v)}</h4><table class="num"><tr><td>Annonces</td><td>${r.n}</td></tr><tr><td>Loyer médian</td><td>${L_.money(r.med)} / ${unit}</td></tr><tr><td>Le moins cher</td><td>${L_.money(r.min)}</td></tr><tr><td>Le plus cher</td><td>${L_.money(r.max)}</td></tr></table><a class="btn btn-primary btn-sm btn-block" style="color:#fff" href="annonces.html?ville=${encodeURIComponent(r.v)}&periode=${st.per}">Voir les ${r.n} annonce${r.n>1?"s":""}</a></div>`);
-      m.on("click",()=>{if(map.getZoom()<11)map.flyTo(COORDS[r.v],12,{duration:.8});});
-      cityLayer.addLayer(m);
-    });
+      const m=L.marker(at,{icon,title:r.v,keyboard:true});
+      m.bindPopup(`<div class="pop-city"><h4>${esc(r.v)}</h4><table class="num"><tr><td>Annonces</td><td>${r.n}</td></tr><tr><td>Loyer médian</td><td>${L_.money(r.med)} / ${unit}</td></tr><tr><td>Le moins cher</td><td>${L_.money(r.min)}</td></tr><tr><td>Le plus cher</td><td>${L_.money(r.max)}</td></tr></table><a class="btn btn-primary btn-sm btn-block" style="color:#fff" href="${r.href}">Voir les ${r.n} annonce${r.n>1?"s":""}</a></div>`);
+      m.on("click",()=>{if(map.getZoom()<zoomTo)map.flyTo(at,zoomTo,{duration:.8});});
+      layer.addLayer(m);
+    };
+    const mk=(v,ls,href)=>({v,ls,n:ls.length,med:median(ls.map(l=>l.prix)),min:Math.min(...ls.map(l=>l.prix)),max:Math.max(...ls.map(l=>l.prix)),href});
+    const metroLs=list.filter(l=>METRO.includes(l.ville));
+    if(metroLs.length)bubble(metroLayer,mk("Grand Port-au-Prince",metroLs,`annonces.html?periode=${st.per}`),METRO_C,11);
+    rows.filter(r=>!METRO.includes(r.v)).forEach(r=>bubble(metroLayer,Object.assign(r,{href:`annonces.html?ville=${encodeURIComponent(r.v)}&periode=${st.per}`}),COORDS[r.v],12));
+    rows.forEach(r=>bubble(cityLayer,Object.assign(r,{href:`annonces.html?ville=${encodeURIComponent(r.v)}&periode=${st.per}`}),COORDS[r.v],12));
     list.forEach(l=>{
       const icon=L.divIcon({className:"",iconSize:[0,0],html:`<span class="price-pin ${l.periode} num">${L_.money(l.prix)}</span>`});
       const m=L.marker(jitter(l.id,COORDS[l.ville]),{icon,title:l.titre});
@@ -134,14 +142,15 @@
     $("#sideTitle").textContent=`Loyer médian par ville, ${st.per==="nuit"?"à la nuit":"au mois"}`;
     $("#sideCount").textContent=`${list.length} annonce${list.length>1?"s":""}`;
     $("#rank").innerHTML=rows.length?rows.map(r=>`<tr data-v="${esc(r.v)}" tabindex="0"><td><span class="dot" style="background:${color(t(r.med))}"></span>${esc(r.v)}</td><td>${r.n}</td><td><b>${L_.money(r.med)}</b></td></tr>`).join(""):`<tr><td colspan="3" style="color:var(--muted)">Aucune annonce ${st.per==="nuit"?"à la nuit":"au mois"} pour ce type.</td></tr>`;
-    $$("#rank tr[data-v]").forEach(tr=>{const go=()=>map.flyTo(COORDS[tr.dataset.v],12,{duration:.8});tr.addEventListener("click",go);tr.addEventListener("keydown",e=>{if(e.key==="Enter")go();});});
+    $$("#rank tr[data-v]").forEach(tr=>{const go=()=>map.flyTo(COORDS[tr.dataset.v],METRO.includes(tr.dataset.v)?13:12,{duration:.8});tr.addEventListener("click",go);tr.addEventListener("keydown",e=>{if(e.key==="Enter")go();});});
     $("#legend").innerHTML=rows.length?`Loyer médian / ${unit}<div class="bar"></div><div class="ends num"><span>${L_.money(lo)}</span><span>${L_.money(hi)}</span></div>`:"Aucune donnée";
     $("#toList").href=`annonces.html?periode=${st.per}${st.type?"&type="+encodeURIComponent(st.type):""}`;
   }
   // Villes en vue d'ensemble, prix de chaque annonce une fois zoomé
   function syncLayers(){
-    if(map.getZoom()>=11){map.removeLayer(cityLayer);if(!map.hasLayer(pinLayer))pinLayer.addTo(map);}
-    else{map.removeLayer(pinLayer);if(!map.hasLayer(cityLayer))cityLayer.addTo(map);}
+    const z=map.getZoom(), want=z>=12?pinLayer:z>=10?cityLayer:metroLayer;
+    [metroLayer,cityLayer,pinLayer].forEach(l=>{if(l!==want)map.removeLayer(l);});
+    if(!map.hasLayer(want))want.addTo(map);
   }
   map.on("zoomend",syncLayers);
   $$("[data-per]").forEach(b=>b.addEventListener("click",()=>{st.per=b.dataset.per;$$("[data-per]").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
