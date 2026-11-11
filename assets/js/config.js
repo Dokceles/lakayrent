@@ -8,7 +8,7 @@
 window.LAKAY_CONFIG = {
   // ID client OAuth Google (Google Cloud Console > API et services > Identifiants)
   // ex. "1234567890-abcdefg.apps.googleusercontent.com"
-  GOOGLE_CLIENT_ID: "",
+  GOOGLE_CLIENT_ID: "626316783424-anm36mu7s73s1glj7thivsui6p1e603h.apps.googleusercontent.com",
 
   // URL de l'application Web Google Apps Script (se termine par /exec)
   // ex. "https://script.google.com/macros/s/AKfy.../exec"

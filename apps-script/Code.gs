@@ -13,7 +13,7 @@
  */
 
 // ID client OAuth Google : le même que GOOGLE_CLIENT_ID dans config.js
-const CLIENT_ID = "COLLEZ-ICI-VOTRE-ID.apps.googleusercontent.com";
+const CLIENT_ID = "626316783424-anm36mu7s73s1glj7thivsui6p1e603h.apps.googleusercontent.com";
 
 // Recevoir un e-mail à chaque nouvelle demande de visite (propriétaire) et chaque message de contact (vous)
 const NOTIFY_OWNERS = true;

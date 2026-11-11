@@ -388,7 +388,7 @@
         <div><h4>LakayRent</h4><p>Des propriétaires en Haïti louent leurs maisons, appartements, villas et terrains à des locataires du monde entier. Les annonces sont classées du loyer le plus bas au plus élevé.</p></div>
         <div><h4>Louer</h4><a href="annonces.html">Toutes les annonces</a><a href="annonces.html?periode=mois">Location au mois</a><a href="annonces.html?periode=nuit">Location à la nuit</a></div>
         <div><h4>Propriétaires</h4><a href="connexion.html?role=proprietaire">Créer mon compte</a><a href="espace.html#publier">Publier une annonce</a><a href="a-propos.html#aide">Conseils</a></div>
-        <div><h4>Aide</h4><a href="a-propos.html#aide">Questions fréquentes</a><a href="a-propos.html#contact">Nous contacter</a><a href="a-propos.html">À propos</a></div>
+        <div><h4>Aide</h4><a href="a-propos.html#aide">Questions fréquentes</a><a href="a-propos.html#contact">Nous contacter</a><a href="a-propos.html">À propos</a><a href="confidentialite.html">Confidentialité</a></div>
       </div>
       <svg class="skyline" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60V40l60-14 50 10 70-22 60 18 40-8 20-10 10-14h4l2-8 2 8h4l10 14 20 10 40 8 30-10 50 6 60-20 80 18 70-12 60 10 80-16 70 14 60-6 70 10 80-18 60 16 40-6v52z" fill="#fff"/></svg>
       <div class="copy"><span>© ${new Date().getFullYear()} LakayRent · Haïti · Photos : <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:inherit">Unsplash</a></span><span>${DEMO ? "Mode démo : les données restent dans votre navigateur" : "Connexion sécurisée avec Google"}</span></div>
