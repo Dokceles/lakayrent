@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carte des prix — LakayRent</title>
+<meta name="description" content="Carte des loyers en Haïti : prix médian et nombre d'annonces par ville, de Port-au-Prince au Cap-Haïtien.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/css/style.css?v=7">
+<style>
+.map-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:22px;align-items:start;padding:22px 0 60px}
+@media (max-width:960px){.map-layout{grid-template-columns:1fr}}
+.map-wrap{position:relative;border-radius:26px;overflow:hidden;box-shadow:var(--shadow);background:var(--lav)}
+#map{height:min(72vh,680px);min-height:440px;width:100%}
+.map-tools{position:absolute;top:14px;left:14px;right:14px;z-index:500;display:flex;gap:10px;flex-wrap:wrap;pointer-events:none}
+.map-tools>*{pointer-events:auto}
+.map-tools .seg{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);box-shadow:var(--shadow-sm)}
+.map-tools select{border:0;border-radius:999px;padding:10px 14px;font-weight:600;font-size:14px;background:rgba(255,255,255,.92);box-shadow:var(--shadow-sm)}
+.legend{position:absolute;left:14px;bottom:14px;z-index:500;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-radius:16px;padding:10px 14px;font-size:12.5px;box-shadow:var(--shadow-sm);color:var(--muted)}
+.legend .bar{height:8px;width:180px;border-radius:99px;margin:6px 0 4px;background:linear-gradient(90deg,#8DB9F0,#B9B4EC,#F5B69E,#F7A81B)}
+.legend .ends{display:flex;justify-content:space-between;font-weight:700;color:var(--navy-2)}
+.city-bubble{display:grid;place-items:center;border-radius:999px;color:var(--navy-2);font-family:var(--display);font-weight:700;border:3px solid #fff;box-shadow:0 8px 20px -8px rgba(19,41,107,.55);text-align:center;line-height:1.05;cursor:pointer;transition:transform .15s ease}
+.city-bubble:hover{transform:scale(1.07)}
+.city-bubble small{display:block;font-family:var(--body);font-weight:600;font-size:10.5px;opacity:.8}
+.price-pin{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;background:#fff;color:var(--navy-2);border-radius:999px;padding:5px 10px;font-weight:700;font-size:13px;box-shadow:0 6px 16px -6px rgba(19,41,107,.55);border:2px solid #fff;transform:translate(-50%,-50%);cursor:pointer}
+.price-pin.nuit{background:var(--navy);color:#fff}
+.price-pin:hover{background:var(--sun);color:var(--navy-2)}
+.leaflet-popup-content-wrapper{border-radius:18px;padding:0;overflow:hidden}
+.leaflet-popup-content{margin:0;width:260px!important;font-family:var(--body)}
+.pop img{width:100%;height:130px;object-fit:cover;display:block}
+.pop .b{padding:12px 14px;display:grid;gap:4px}
+.pop h4{font-family:var(--display);font-size:16px;color:var(--navy-2);margin:0}
+.pop .p{font-family:var(--display);font-weight:700;color:var(--blue);font-size:18px}
+.pop .m{font-size:12.5px;color:var(--muted)}
+.pop a.btn{margin-top:6px;color:#fff}
+.pop-city{padding:14px 16px;display:grid;gap:6px}
+.pop-city h4{font-size:18px}
+.pop-city table{width:100%;border-collapse:collapse;font-size:13px}
+.pop-city td{padding:3px 0}
+.pop-city td:last-child{text-align:right;font-weight:700;color:var(--navy-2)}
+.rank-table{width:100%;border-collapse:collapse;font-size:14px}
+.rank-table th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:0 0 8px;border-bottom:1px solid var(--line)}
+.rank-table th:not(:first-child),.rank-table td:not(:first-child){text-align:right}
+.rank-table td{padding:10px 0;border-bottom:1px solid var(--line)}
+.rank-table tr{cursor:pointer}
+.rank-table tbody tr:hover td{background:var(--lav)}
+.rank-table .dot{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:8px;vertical-align:middle}
+.side-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.side-head h2{font-size:20px;color:var(--navy-2)}
+</style>
+</head>
+<body data-page="carte">
+<header id="site-header"></header>
+<main class="container">
+  <div class="page-head">
+    <h1>Carte des prix en Haïti</h1>
+    <p>Loyer médian par ville et nombre d'annonces. Zoomez pour voir chaque logement et son prix.</p>
+  </div>
+  <div class="map-layout">
+    <div class="map-wrap">
+      <div id="map" role="region" aria-label="Carte d'Haïti avec les prix des loyers"></div>
+      <div class="map-tools">
+        <div class="seg" role="group" aria-label="Durée de location">
+          <button type="button" data-per="mois" aria-pressed="true">Au mois</button>
+          <button type="button" data-per="nuit" aria-pressed="false">À la nuit</button>
+        </div>
+        <select id="mType" aria-label="Type de bien"><option value="">Tous les types</option></select>
+      </div>
+      <div class="legend" id="legend"></div>
+    </div>
+    <aside class="panel">
+      <div class="side-head"><h2 id="sideTitle">Loyer médian par ville</h2><span class="num" id="sideCount" style="color:var(--muted);font-size:13px"></span></div>
+      <table class="rank-table num">
+        <thead><tr><th>Ville</th><th>Annonces</th><th>Médian</th></tr></thead>
+        <tbody id="rank"><tr><td colspan="3" style="color:var(--muted)">Chargement…</td></tr></tbody>
+      </table>
+      <p class="hint" style="font-size:12.5px;color:var(--muted);margin:12px 0 0">Cliquez sur une ville pour la centrer sur la carte. Les positions sont celles du quartier ou de la ville, pas l'adresse exacte.</p>
+      <a class="btn btn-primary btn-block" style="margin-top:14px" href="annonces.html" id="toList">Voir la liste des annonces</a>
+    </aside>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="assets/js/config.js?v=7"></script>
+<script src="assets/js/core.js?v=7"></script>
+<script>
+(function(){
+  const L_=Lakay,$=L_.$,$$=L_.$$,esc=L_.esc;
+  // Centre approximatif de chaque ville (lat, lng)
+  const COORDS={"Port-au-Prince":[18.5392,-72.3350],"Delmas":[18.5480,-72.3030],"Pétion-Ville":[18.5125,-72.2853],"Tabarre":[18.5800,-72.2700],"Croix-des-Bouquets":[18.5770,-72.2260],"Carrefour":[18.5340,-72.4090],"Kenscoff":[18.4480,-72.2860],"Jacmel":[18.2342,-72.5347],"Cap-Haïtien":[19.7578,-72.2040],"Les Cayes":[18.1933,-73.7461],"Port-Salut":[18.0830,-73.9170],"Côte des Arcadins":[18.9500,-72.7000],"Saint-Marc":[19.1083,-72.6939],"Gonaïves":[19.4475,-72.6892],"Jérémie":[18.6500,-74.1167],"Hinche":[19.1500,-72.0167],"Île-à-Vache":[18.0700,-73.6400]};
+  const st={per:"mois",type:""};
+  $("#mType").insertAdjacentHTML("beforeend",L_.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));
+
+  const map=L.map("map",{zoomControl:true,scrollWheelZoom:true}).setView([18.85,-72.85],8);
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",{maxZoom:18,subdomains:"abcd",attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(map);
+  map.zoomControl.setPosition("bottomright");
+  const cityLayer=L.layerGroup().addTo(map), pinLayer=L.layerGroup();
+
+  // Position stable d'une annonce autour du centre de sa ville (selon son id)
+  function jitter(id,[lat,lng]){let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;const a=(h%360)*Math.PI/180,r=0.004+((h>>9)%100)/100*0.018;return[lat+Math.sin(a)*r,lng+Math.cos(a)*r];}
+  const median=a=>{const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+  // Couleur selon le prix, du bleu (bas) à l'orange (haut)
+  const STOPS=[[141,185,240],[185,180,236],[245,182,158],[247,168,27]];
+  function color(t){t=Math.max(0,Math.min(1,t));const k=t*(STOPS.length-1),i=Math.min(STOPS.length-2,Math.floor(k)),f=k-i;const c=STOPS[i].map((v,j)=>Math.round(v+(STOPS[i+1][j]-v)*f));return `rgb(${c})`;}
+
+  let all=[];
+  function render(){
+    const list=all.filter(l=>l.periode===st.per&&(!st.type||l.type===st.type)&&COORDS[l.ville]);
+    const by={};list.forEach(l=>(by[l.ville]=by[l.ville]||[]).push(l));
+    const rows=Object.entries(by).map(([v,ls])=>({v,ls,n:ls.length,med:median(ls.map(l=>l.prix)),min:Math.min(...ls.map(l=>l.prix)),max:Math.max(...ls.map(l=>l.prix))}));
+    const lo=rows.length?Math.min(...rows.map(r=>r.med)):0, hi=rows.length?Math.max(...rows.map(r=>r.med)):1;
+    const t=v=>hi>lo?Math.log(v/lo)/Math.log(hi/lo):0.5;
+    const unit=st.per==="nuit"?"nuit":"mois";
+    cityLayer.clearLayers();pinLayer.clearLayers();
+    rows.forEach(r=>{
+      const size=Math.round(46+Math.min(34,r.n*8));
+      const icon=L.divIcon({className:"",iconSize:[size,size],iconAnchor:[size/2,size/2],html:`<div class="city-bubble" style="width:${size}px;height:${size}px;background:${color(t(r.med))}"><div>${L_.money(r.med)}<small>${r.n} annonce${r.n>1?"s":""}</small></div></div>`});
+      const m=L.marker(COORDS[r.v],{icon,title:r.v,keyboard:true});
+      m.bindPopup(`<div class="pop-city"><h4>${esc(r.v)}</h4><table class="num"><tr><td>Annonces</td><td>${r.n}</td></tr><tr><td>Loyer médian</td><td>${L_.money(r.med)} / ${unit}</td></tr><tr><td>Le moins cher</td><td>${L_.money(r.min)}</td></tr><tr><td>Le plus cher</td><td>${L_.money(r.max)}</td></tr></table><a class="btn btn-primary btn-sm btn-block" style="color:#fff" href="annonces.html?ville=${encodeURIComponent(r.v)}&periode=${st.per}">Voir les ${r.n} annonce${r.n>1?"s":""}</a></div>`);
+      m.on("click",()=>{if(map.getZoom()<11)map.flyTo(COORDS[r.v],12,{duration:.8});});
+      cityLayer.addLayer(m);
+    });
+    list.forEach(l=>{
+      const icon=L.divIcon({className:"",iconSize:[0,0],html:`<span class="price-pin ${l.periode} num">${L_.money(l.prix)}</span>`});
+      const m=L.marker(jitter(l.id,COORDS[l.ville]),{icon,title:l.titre});
+      m.bindPopup(`<div class="pop"><img src="${esc(L_.thumb(L_.photoOf(l)))}" alt=""><div class="b"><h4>${esc(l.titre)}</h4><div class="m">${esc([l.quartier,l.ville].filter(Boolean).join(", "))} · ${esc(l.type)}${l.type==="Terrain"?"":` · ${l.chambres} ch.`}</div><div class="p num">${L_.money(l.prix)} <small style="font-size:13px">/ ${L_.periodLabel(l.periode)}</small></div><a class="btn btn-primary btn-sm" href="annonce.html?id=${encodeURIComponent(l.id)}">Voir l'annonce</a></div></div>`,{maxWidth:260,minWidth:260});
+      pinLayer.addLayer(m);
+    });
+    syncLayers();
+    rows.sort((a,b)=>a.med-b.med);
+    $("#sideTitle").textContent=`Loyer médian par ville, ${st.per==="nuit"?"à la nuit":"au mois"}`;
+    $("#sideCount").textContent=`${list.length} annonce${list.length>1?"s":""}`;
+    $("#rank").innerHTML=rows.length?rows.map(r=>`<tr data-v="${esc(r.v)}" tabindex="0"><td><span class="dot" style="background:${color(t(r.med))}"></span>${esc(r.v)}</td><td>${r.n}</td><td><b>${L_.money(r.med)}</b></td></tr>`).join(""):`<tr><td colspan="3" style="color:var(--muted)">Aucune annonce ${st.per==="nuit"?"à la nuit":"au mois"} pour ce type.</td></tr>`;
+    $$("#rank tr[data-v]").forEach(tr=>{const go=()=>map.flyTo(COORDS[tr.dataset.v],12,{duration:.8});tr.addEventListener("click",go);tr.addEventListener("keydown",e=>{if(e.key==="Enter")go();});});
+    $("#legend").innerHTML=rows.length?`Loyer médian / ${unit}<div class="bar"></div><div class="ends num"><span>${L_.money(lo)}</span><span>${L_.money(hi)}</span></div>`:"Aucune donnée";
+    $("#toList").href=`annonces.html?periode=${st.per}${st.type?"&type="+encodeURIComponent(st.type):""}`;
+  }
+  // Villes en vue d'ensemble, prix de chaque annonce une fois zoomé
+  function syncLayers(){
+    if(map.getZoom()>=11){map.removeLayer(cityLayer);if(!map.hasLayer(pinLayer))pinLayer.addTo(map);}
+    else{map.removeLayer(pinLayer);if(!map.hasLayer(cityLayer))cityLayer.addTo(map);}
+  }
+  map.on("zoomend",syncLayers);
+  $$("[data-per]").forEach(b=>b.addEventListener("click",()=>{st.per=b.dataset.per;$$("[data-per]").forEach(x=>x.setAttribute("aria-pressed",x===b));render();}));
+  $("#mType").addEventListener("change",e=>{st.type=e.target.value;render();});
+  (async()=>{
+    try{all=await L_.getListings();render();}
+    catch(e){$("#rank").innerHTML=`<tr><td colspan="3"><div class="notice err">${esc(e.message)}</div></td></tr>`;}
+  })();
+})();
+</script>
+</body>
+</html>

@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=6">
+<link rel="stylesheet" href="assets/css/style.css?v=7">
 </head>
 <body data-page="annonces">
 <header id="site-header"></header>
@@ -37,6 +37,7 @@
     <section aria-labelledby="title">
       <div class="toolbar">
         <div class="count" id="count" role="status">Chargement…</div>
+        <a class="btn btn-ghost btn-sm" href="carte.html" id="mapLink">Voir sur la carte</a>
         <div class="field" style="grid-auto-flow:column;align-items:center;gap:10px"><label for="fSort">Trier</label>
           <select id="fSort" style="width:auto"><option value="asc">Prix : du moins cher au plus cher</option><option value="desc">Prix : du plus cher au moins cher</option><option value="new">Les plus récentes</option></select></div>
       </div>
@@ -46,8 +47,8 @@
   </div>
 </main>
 <footer id="site-footer"></footer>
-<script src="assets/js/config.js?v=6"></script>
-<script src="assets/js/core.js?v=6"></script>
+<script src="assets/js/config.js?v=7"></script>
+<script src="assets/js/core.js?v=7"></script>
 <script>
 (function(){
   const L=Lakay,$=L.$,$$=L.$$,esc=L.esc;
@@ -84,6 +85,7 @@
   $("#fSort").addEventListener("change",e=>{st.sort=e.target.value;render();});
   let deb;$("#fMax").addEventListener("input",e=>{clearTimeout(deb);deb=setTimeout(()=>{st.max=e.target.value;render();},250);});
   $$("[data-per]").forEach(b=>b.addEventListener("click",()=>{st.periode=b.dataset.per;syncInputs();render();}));
+  $("#mapLink").insertAdjacentHTML("afterbegin",L.icon("map"));
   $("#reset").addEventListener("click",()=>{Object.assign(st,{ville:"",type:"",periode:"",max:"",ch:"0",sort:"asc"});syncInputs();render();});
   syncInputs();
   (async()=>{

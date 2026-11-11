@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=6">
+<link rel="stylesheet" href="assets/css/style.css?v=7">
 </head>
 <body data-page="home">
 <header id="site-header"></header>
@@ -112,21 +112,21 @@
 
   <section class="section" style="padding-top:10px">
     <div class="container">
-      <h2 class="section-title">Villes populaires</h2>
+      <div class="section-head"><h2 class="section-title">Villes populaires</h2><a class="btn btn-ghost btn-sm" href="carte.html" id="mapBtn">Carte des prix</a></div>
       <div class="cities" id="cities"></div>
     </div>
   </section>
 </main>
 
 <footer id="site-footer"></footer>
-<script src="assets/js/config.js?v=6"></script>
-<script src="assets/js/core.js?v=6"></script>
+<script src="assets/js/config.js?v=7"></script>
+<script src="assets/js/core.js?v=7"></script>
 <script>
 (function(){
   const L=Lakay,$=L.$,esc=L.esc;
   $("#icoLieu").innerHTML=L.icon("pin");$("#icoType").innerHTML=L.icon("house");$("#icoPrix").innerHTML=L.icon("tag");
   $("#sGo").insertAdjacentHTML("afterbegin",L.icon("search"));
-  $("#arr1").outerHTML=L.icon("arrow");$("#arr3").outerHTML=L.icon("arrow");$("#arr2").outerHTML=L.icon("arrow");$("#icoHand").outerHTML=L.icon("handshake");
+  $("#arr1").outerHTML=L.icon("arrow");$("#arr3").outerHTML=L.icon("arrow");$("#mapBtn").insertAdjacentHTML("afterbegin",L.icon("map"));$("#arr2").outerHTML=L.icon("arrow");$("#icoHand").outerHTML=L.icon("handshake");
   $("#stepsLoc").insertAdjacentHTML("afterbegin",L.icon("search"));$("#stepsProp").insertAdjacentHTML("afterbegin",L.icon("key"));
   $("#sVille").insertAdjacentHTML("beforeend",L.VILLES.map(v=>`<option>${esc(v)}</option>`).join(""));
   $("#sType").insertAdjacentHTML("beforeend",L.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));

@@ -52,6 +52,7 @@
     users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17" cy="9" r="2.8"/><path d="M16.5 14c3 .2 5 2.3 5 5.5"/>',
     login: '<path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l4-4-4-4M14 12H3"/>',
     logout: '<path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4"/><path d="M16 16l4-4-4-4M20 12H9"/>',
+    map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',
     pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
     tag: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/>',
     bed: '<path d="M3 18V6M3 13h18v5M21 13v-2a3 3 0 0 0-3-3h-7v5"/><circle cx="7" cy="10" r="2"/>',
@@ -365,7 +366,7 @@
           </div>
         </div>
         <a class="nav-link" href="a-propos.html"${cur("apropos")}>${L.icon("info")}À propos</a>
-        <a class="nav-link" href="a-propos.html#aide">${L.icon("help")}Aide</a>
+        <a class="nav-link" href="carte.html"${cur("carte")}>${L.icon("map")}Carte des prix</a>
         <a class="nav-link" href="a-propos.html#contact">${L.icon("mail")}Contact</a>
         <a class="nav-link mobile-only" href="espace.html#favoris">${L.icon("heart")}Mes favoris</a>
         <a class="nav-link mobile-only" href="${s ? "espace.html" : "connexion.html?role=proprietaire"}">${L.icon("key")}Espace Propriétaire</a>
@@ -386,7 +387,7 @@
         <div class="socials">${soc.map(([i, u, n]) => `<a href="${esc(u)}" aria-label="${n}" rel="noopener" target="_blank">${L.icon(i)}</a>`).join("")}${L.flag}</div></div>
       <div class="footer-cols">
         <div><h4>LakayRent</h4><p>Des propriétaires en Haïti louent leurs maisons, appartements, villas et terrains à des locataires du monde entier. Les annonces sont classées du loyer le plus bas au plus élevé.</p></div>
-        <div><h4>Louer</h4><a href="annonces.html">Toutes les annonces</a><a href="annonces.html?periode=mois">Location au mois</a><a href="annonces.html?periode=nuit">Location à la nuit</a></div>
+        <div><h4>Louer</h4><a href="annonces.html">Toutes les annonces</a><a href="annonces.html?periode=mois">Location au mois</a><a href="annonces.html?periode=nuit">Location à la nuit</a><a href="carte.html">Carte des prix</a></div>
         <div><h4>Propriétaires</h4><a href="connexion.html?role=proprietaire">Créer mon compte</a><a href="espace.html#publier">Publier une annonce</a><a href="a-propos.html#aide">Conseils</a></div>
         <div><h4>Aide</h4><a href="a-propos.html#aide">Questions fréquentes</a><a href="a-propos.html#contact">Nous contacter</a><a href="a-propos.html">À propos</a><a href="confidentialite.html">Confidentialité</a></div>
       </div>
