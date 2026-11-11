@@ -17,7 +17,7 @@ const CLIENT_ID = "626316783424-anm36mu7s73s1glj7thivsui6p1e603h.apps.googleuser
 
 // Recevoir un e-mail à chaque nouvelle demande de visite (propriétaire) et chaque message de contact (vous)
 const NOTIFY_OWNERS = true;
-const ADMIN_EMAIL = ""; // ex. "vous@gmail.com" pour recevoir les messages de contact
+const ADMIN_EMAIL = "euler5025@gmail.com"; // reçoit les messages de la page Contact
 
 const MAX_PHOTOS = 6;
 const MAX_PHOTO_BYTES = 3 * 1024 * 1024;

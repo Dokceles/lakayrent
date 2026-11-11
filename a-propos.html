@@ -7,7 +7,7 @@
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=5">
+<link rel="stylesheet" href="assets/css/style.css?v=6">
 </head>
 <body data-page="apropos">
 <header id="site-header"></header>
@@ -53,21 +53,21 @@
         <h3 style="color:var(--navy-2);font-size:22px">Nous joindre directement</h3>
         <div class="stat" id="cMailLine"></div>
         <div class="stat" id="cWaLine"></div>
-        <p style="color:var(--muted);margin:0">Nous répondons du lundi au samedi, de 8 h à 18 h (heure d'Haïti).</p>
+        <p style="color:var(--muted);margin:0">Écrivez-nous par e-mail ou sur WhatsApp : nous vous répondons au plus vite.</p>
       </div>
     </div>
   </section>
 </main>
 <footer id="site-footer"></footer>
-<script src="assets/js/config.js?v=5"></script>
-<script src="assets/js/core.js?v=5"></script>
+<script src="assets/js/config.js?v=6"></script>
+<script src="assets/js/core.js?v=6"></script>
 <script>
 (function(){
   const L=Lakay,$=L.$,esc=L.esc,C=L.cfg;
   $("#values").innerHTML=[["tag","Accessible","Chaque annonce affiche son loyer clairement, et le classement commence toujours par le moins cher."],["shield","Confiance","Chaque compte est relié à une adresse Google vérifiée. Les propriétaires gèrent leurs annonces depuis leur espace."],["pin","Ancré en Haïti","De Port-au-Prince au Cap, de Jacmel à Port-Salut : des logements dans tout le pays, publiés par ceux qui y vivent."]]
     .map(([i,t,p])=>`<div class="panel">${L.icon(i)}<h3>${t}</h3><p>${p}</p></div>`).join("");
-  $("#cMailLine").innerHTML=`${L.icon("mail")}<div><b style="font-size:17px">${esc(C.CONTACT_EMAIL||"")}</b><span>E-mail</span></div>`;
-  $("#cWaLine").innerHTML=`${L.icon("whatsapp")}<div><b style="font-size:17px" class="num">${esc(C.CONTACT_WHATSAPP||"")}</b><span>WhatsApp</span></div>`;
+  $("#cMailLine").innerHTML=`${L.icon("mail")}<div><b style="font-size:17px"><a href="mailto:${esc(C.CONTACT_EMAIL||"")}" style="color:inherit">${esc(C.CONTACT_EMAIL||"")}</a></b><span>E-mail</span></div>`;
+  $("#cWaLine").innerHTML=`${L.icon("whatsapp")}<div><b style="font-size:17px" class="num">${C.WHATSAPP_URL?`<a href="${esc(C.WHATSAPP_URL)}" target="_blank" rel="noopener" style="color:inherit">${esc(C.CONTACT_WHATSAPP||"")}</a>`:esc(C.CONTACT_WHATSAPP||"")}</b><span>WhatsApp</span></div>`;
   const s=L.session();if(s){$("#cNom").value=s.name||"";$("#cMail").value=s.email||"";}
   $("#cForm").addEventListener("submit",async e=>{
     e.preventDefault();const d={nom:$("#cNom").value.trim(),email:$("#cMail").value.trim(),message:$("#cMsg").value.trim()};

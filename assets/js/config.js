@@ -15,11 +15,11 @@ window.LAKAY_CONFIG = {
   API_URL: "https://script.google.com/macros/s/AKfycbwJbkfNSFIitb1l0CA-UEweNoUI1tGvfO8L27XPtN8sI0i1YW1LYOMq3WFdZ1wpfx8OZg/exec",
 
   // Affichés sur la page Contact
-  CONTACT_EMAIL: "contact@lakayrent.ht",
-  CONTACT_WHATSAPP: "+509 0000-0000",
+  CONTACT_EMAIL: "euler5025@gmail.com",
+  CONTACT_WHATSAPP: "+33 7 53 15 10 16",
 
   // Liens des réseaux sociaux (laisser "" pour masquer)
   FACEBOOK_URL: "",
   YOUTUBE_URL: "",
-  WHATSAPP_URL: ""
+  WHATSAPP_URL: "https://wa.me/33753151016"
 };
