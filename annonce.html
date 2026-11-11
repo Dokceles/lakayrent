@@ -61,7 +61,7 @@
       <div>
         <div class="gallery">
           <div class="gallery-main"><img id="mainImg" src="${esc(photos[0])}" alt="${esc(l.type)} à ${esc(l.ville)}"></div>
-          ${photos.length>1?`<div class="thumbs">${photos.map((p,i)=>`<button type="button" data-i="${i}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${esc(p)}" alt=""></button>`).join("")}</div>`:""}
+          ${photos.length>1?`<div class="thumbs">${photos.map((p,i)=>`<button type="button" data-i="${i}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${esc(L.thumb(p))}" alt="" loading="lazy"></button>`).join("")}</div>`:""}
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px"><span class="badge badge-green">À louer</span><span class="badge badge-soft">${esc(l.type)}</span>${l.exemple?'<span class="badge badge-dark">Annonce d\'exemple</span>':""}</div>
         <h1>${esc(l.titre)}</h1>

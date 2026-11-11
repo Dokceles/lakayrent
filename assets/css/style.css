@@ -93,8 +93,8 @@ h1,h2,h3,h4{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balanc
 @media (max-width:520px){.logo-tag{display:none}.logo-name{font-size:22px}.logo-mark{width:38px;height:38px}}
 
 /* ---------- hero ---------- */
-.hero{position:relative;margin-top:-86px;padding:150px 0 120px;background:var(--navy) center/cover no-repeat;color:#fff;overflow:hidden}
-.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,28,79,.72) 0%,rgba(12,28,79,.45) 42%,rgba(12,28,79,0) 70%),linear-gradient(180deg,rgba(12,28,79,.25),rgba(12,28,79,0) 30%,rgba(246,246,253,0) 80%,var(--bg) 100%)}
+.hero{position:relative;margin-top:-86px;padding:170px 0 140px;background:var(--navy) url('../img/photos/hero.jpg') center 60%/cover no-repeat;color:#fff;overflow:hidden}
+.hero::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(12,28,79,.82) 0%,rgba(12,28,79,.55) 38%,rgba(12,28,79,.1) 68%,rgba(12,28,79,0) 100%),linear-gradient(180deg,rgba(12,28,79,.25),rgba(12,28,79,0) 30%,rgba(246,246,253,0) 80%,var(--bg) 100%)}
 .hero-inner{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:30px;align-items:end}
 .eyebrow{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.24em;text-transform:uppercase;font-weight:700}
 .eyebrow::after{content:"";width:56px;height:1.5px;background:currentColor;opacity:.8}
@@ -360,3 +360,22 @@ h1,h2,h3,h4{font-family:var(--display);line-height:1.1;margin:0;text-wrap:balanc
 
 .mobile-only{display:none}
 @media (max-width:1280px){.main-nav .mobile-only{display:inline-flex}}
+
+@media (min-width:1700px){.hero{background-image:url('../img/photos/hero-4k.jpg')}}
+/* ---------- Haïti mosaic & welcome band ---------- */
+.haiti-head{display:flex;justify-content:space-between;align-items:end;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.haiti-head h2{font-size:clamp(28px,3.4vw,42px);color:var(--navy-2);font-weight:600;margin:12px 0 8px}
+.haiti-head p{color:var(--muted);max-width:60ch;margin:0}
+.mosaic{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:220px 220px;gap:14px}
+.mosaic figure{position:relative;margin:0;border-radius:22px;overflow:hidden;background:var(--lav);box-shadow:var(--shadow-sm)}
+.mosaic .m-big{grid-row:span 2}
+.mosaic img{width:100%;height:100%;object-fit:cover;transition:transform .6s ease}
+.mosaic figure:hover img{transform:scale(1.05)}
+.mosaic figcaption{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.88);backdrop-filter:blur(8px);color:var(--navy-2);font-weight:700;font-size:14px;padding:7px 12px;border-radius:999px}
+@media (max-width:860px){.mosaic{grid-template-columns:1fr 1fr;grid-template-rows:none;grid-auto-rows:170px}.mosaic .m-big{grid-column:1/-1;grid-row:auto;height:240px}}
+.welcome{position:relative;margin:30px 0;padding:90px 0;background:var(--navy) url('../img/photos/hero2.jpg') center/cover no-repeat;color:#fff;text-align:center}
+.welcome::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,28,79,.55),rgba(12,28,79,.75))}
+.welcome-inner{position:relative;display:grid;justify-items:center;gap:14px}
+.welcome-kr{font-family:var(--script);font-style:italic;font-size:clamp(36px,5vw,60px);margin:0;color:#fff}
+.welcome-txt{font-size:clamp(16px,1.6vw,20px);max-width:52ch;margin:0;opacity:.95}
+.welcome-cta{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:8px}

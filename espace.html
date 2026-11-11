@@ -60,7 +60,7 @@
     counts.annonces=list.filter(l=>l.statut==="active").length;renderSide();
     el.innerHTML=head("Mes annonces","Vos annonces actives apparaissent dans le classement par prix.",`<a class="btn btn-primary btn-sm" href="#publier">${L.icon("plus")}Nouvelle annonce</a>`)+
       (list.length?`<div class="row-list">${list.map(l=>`<div class="row">
-        <img src="${esc(L.photoOf(l))}" alt="">
+        <img src="${esc(L.thumb(L.photoOf(l)))}" alt="">
         <div><h4>${esc(l.titre)}</h4><div class="meta num">${esc(l.ville)} · ${esc(l.type)} · <b style="color:var(--blue)">${L.money(l.prix)} / ${L.periodLabel(l.periode)}</b></div>
           <div class="meta">${l.statut==="active"?'<span class="badge badge-green" style="font-size:11.5px">En ligne</span>':'<span class="badge badge-soft" style="font-size:11.5px">Masquée</span>'} · publiée le ${esc(L.dateFr(l.date))}</div></div>
         <div class="actions">

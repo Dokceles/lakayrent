@@ -122,7 +122,9 @@
     };
   }
   L.normalize = normalize;
-  L.photoOf = (l) => (l.photos && l.photos[0]) || "assets/img/annonces/a1.jpg";
+  L.photoOf = (l) => (l.photos && l.photos[0]) || "assets/img/photos/a4.jpg";
+  // Vignette légère pour les cartes (les photos du site existent en deux tailles)
+  L.thumb = (u) => (/^assets\/img\/photos\/[^/]+\.jpg$/.test(u) ? u.replace("assets/img/photos/", "assets/img/photos/sm/") : u);
 
   /* ================= stockage local (session + démo) ================= */
   const store = {
@@ -325,7 +327,7 @@
     const where = [l.quartier, l.ville].filter(Boolean).join(", ");
     return `<article class="card">
       <div class="card-media">
-        <img src="${esc(L.photoOf(l))}" alt="${esc(l.type)} à ${esc(l.ville)}" loading="lazy">
+        <img src="${esc(L.thumb(L.photoOf(l)))}" alt="${esc(l.type)} à ${esc(l.ville)}" loading="lazy" decoding="async">
         <div class="card-badges"><span class="badge badge-green">À louer</span>${l.exemple ? '<span class="badge badge-dark">Exemple</span>' : ""}</div>
         <button class="fav" type="button" data-fav="${esc(l.id)}" aria-pressed="${favOn}" aria-label="Ajouter aux favoris">${L.icon("heart")}</button>
         ${opt.rank ? `<span class="badge badge-sun rank num">N° ${opt.rank} des prix les plus bas</span>` : ""}
@@ -389,7 +391,7 @@
         <div><h4>Aide</h4><a href="a-propos.html#aide">Questions fréquentes</a><a href="a-propos.html#contact">Nous contacter</a><a href="a-propos.html">À propos</a></div>
       </div>
       <svg class="skyline" viewBox="0 0 1200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60V40l60-14 50 10 70-22 60 18 40-8 20-10 10-14h4l2-8 2 8h4l10 14 20 10 40 8 30-10 50 6 60-20 80 18 70-12 60 10 80-16 70 14 60-6 70 10 80-18 60 16 40-6v52z" fill="#fff"/></svg>
-      <div class="copy"><span>© ${new Date().getFullYear()} LakayRent · Haïti</span><span>${DEMO ? "Mode démo : les données restent dans votre navigateur" : "Connexion sécurisée avec Google"}</span></div>
+      <div class="copy"><span>© ${new Date().getFullYear()} LakayRent · Haïti · Photos : <a href="https://unsplash.com" target="_blank" rel="noopener" style="color:inherit">Unsplash</a></span><span>${DEMO ? "Mode démo : les données restent dans votre navigateur" : "Connexion sécurisée avec Google"}</span></div>
     </div>`;
   }
   function mountChrome() {

@@ -14,10 +14,10 @@
 <header id="site-header"></header>
 
 <main>
-  <section class="hero" style="background-image:url('assets/img/hero.jpg')">
+  <section class="hero">
     <div class="container hero-inner">
       <div>
-        <div class="eyebrow">Haïti · Logement · Confiance</div>
+        <div class="eyebrow">Byenvini lakay ou · Haïti · Confiance</div>
         <h1>Trouvez la maison idéale <em>en Haïti</em></h1>
         <p class="lead">Louez facilement des maisons, appartements et villas du monde entier, du moins cher au plus cher.</p>
         <form class="searchbar" id="search" action="annonces.html">
@@ -58,7 +58,35 @@
     </div>
   </section>
 
-  <section class="section" style="padding-top:10px">
+  <section class="section haiti">
+    <div class="container">
+      <div class="haiti-head">
+        <div>
+          <div class="eyebrow" style="color:var(--blue)">Lakay se lakay</div>
+          <h2>Haïti vous attend, comme à la maison</h2>
+          <p>Des baies turquoise du Nord aux collines fraîches de l'Ouest, trouvez le logement qui vous ressemble, pour quelques nuits ou pour longtemps.</p>
+        </div>
+        <a class="btn btn-primary" href="annonces.html">Explorer les logements <span id="arr3"></span></a>
+      </div>
+      <div class="mosaic">
+        <figure class="m-big"><img src="assets/img/photos/ht1.jpg" alt="Baie turquoise entourée de montagnes vertes" loading="lazy"><figcaption>Les baies du Nord</figcaption></figure>
+        <figure><img src="assets/img/photos/sm/ht3.jpg" alt="Maisons blanches entourées d'arbres" loading="lazy"><figcaption>Maisons à flanc de colline</figcaption></figure>
+        <figure><img src="assets/img/photos/sm/ht2.jpg" alt="Eau turquoise et côte boisée" loading="lazy"><figcaption>Eaux turquoise</figcaption></figure>
+        <figure><img src="assets/img/photos/sm/ht5.jpg" alt="Plage rocheuse bordée d'arbres" loading="lazy"><figcaption>Côtes sauvages</figcaption></figure>
+        <figure><img src="assets/img/photos/sm/ht6.jpg" alt="Bateau de pêche sur la mer" loading="lazy"><figcaption>La vie au bord de l'eau</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="welcome">
+    <div class="container welcome-inner">
+      <p class="welcome-kr">Byenvini lakay ou.</p>
+      <p class="welcome-txt">Que vous rentriez au pays pour les vacances, pour une mission ou pour de bon, trouvez un logement où vous vous sentirez chez vous dès la première nuit.</p>
+      <div class="welcome-cta"><a class="btn btn-sun" href="annonces.html">Trouver mon logement</a><a class="btn btn-outline" href="connexion.html?role=proprietaire">Je suis propriétaire</a></div>
+    </div>
+  </section>
+
+  <section class="section">
     <div class="container">
       <h2 class="section-title">Comment ça marche</h2>
       <div class="steps">
@@ -98,7 +126,7 @@
   const L=Lakay,$=L.$,esc=L.esc;
   $("#icoLieu").innerHTML=L.icon("pin");$("#icoType").innerHTML=L.icon("house");$("#icoPrix").innerHTML=L.icon("tag");
   $("#sGo").insertAdjacentHTML("afterbegin",L.icon("search"));
-  $("#arr1").outerHTML=L.icon("arrow");$("#arr2").outerHTML=L.icon("arrow");$("#icoHand").outerHTML=L.icon("handshake");
+  $("#arr1").outerHTML=L.icon("arrow");$("#arr3").outerHTML=L.icon("arrow");$("#arr2").outerHTML=L.icon("arrow");$("#icoHand").outerHTML=L.icon("handshake");
   $("#stepsLoc").insertAdjacentHTML("afterbegin",L.icon("search"));$("#stepsProp").insertAdjacentHTML("afterbegin",L.icon("key"));
   $("#sVille").insertAdjacentHTML("beforeend",L.VILLES.map(v=>`<option>${esc(v)}</option>`).join(""));
   $("#sType").insertAdjacentHTML("beforeend",L.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));
