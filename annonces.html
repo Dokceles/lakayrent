@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annonces — LakayRent</title>
+<meta name="description" content="Toutes les maisons, appartements, villas et terrains à louer en Haïti, classés du moins cher au plus cher.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="annonces">
+<header id="site-header"></header>
+<main class="container">
+  <div class="page-head">
+    <h1 id="title">Maisons à louer en Haïti</h1>
+    <p>Du loyer le plus bas au plus élevé. Filtrez par ville, type de bien et budget.</p>
+  </div>
+
+  <div class="listing-layout" style="padding:22px 0 60px">
+    <aside class="panel filters" aria-label="Filtres">
+      <div class="field"><label for="fVille">Lieu</label><select id="fVille"><option value="">Tout Haïti</option></select></div>
+      <div class="field"><label for="fType">Type de bien</label><select id="fType"><option value="">Tous les types</option></select></div>
+      <div class="field"><span class="label" id="perLbl">Durée de location</span>
+        <div class="seg" role="group" aria-labelledby="perLbl">
+          <button type="button" data-per="" aria-pressed="true">Tout</button>
+          <button type="button" data-per="mois" aria-pressed="false">Au mois</button>
+          <button type="button" data-per="nuit" aria-pressed="false">À la nuit</button>
+        </div>
+      </div>
+      <div class="field"><label for="fMax">Prix maximum ($)</label><input id="fMax" type="number" min="0" step="10" inputmode="numeric" placeholder="Aucune limite"><span class="hint">Comparé au prix affiché (par mois ou par nuit).</span></div>
+      <div class="field"><label for="fCh">Chambres minimum</label><select id="fCh"><option value="0">Peu importe</option><option value="1">1 et plus</option><option value="2">2 et plus</option><option value="3">3 et plus</option><option value="4">4 et plus</option><option value="5">5 et plus</option></select></div>
+      <button class="btn btn-ghost btn-sm" type="button" id="reset">Effacer les filtres</button>
+    </aside>
+
+    <section aria-labelledby="title">
+      <div class="toolbar">
+        <div class="count" id="count" role="status">Chargement…</div>
+        <div class="field" style="grid-auto-flow:column;align-items:center;gap:10px"><label for="fSort">Trier</label>
+          <select id="fSort" style="width:auto"><option value="asc">Prix : du moins cher au plus cher</option><option value="desc">Prix : du plus cher au moins cher</option><option value="new">Les plus récentes</option></select></div>
+      </div>
+      <div class="ladder" id="ladder"></div>
+      <div class="grid" id="grid"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+    </section>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,$$=L.$$,esc=L.esc;
+  const st={ville:L.param("ville"),type:L.param("type"),periode:L.param("periode"),max:L.param("max"),ch:L.param("ch")||"0",sort:L.param("tri")||"asc"};
+  $("#fVille").insertAdjacentHTML("beforeend",L.VILLES.map(v=>`<option>${esc(v)}</option>`).join(""));
+  $("#fType").insertAdjacentHTML("beforeend",L.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));
+  let all=[];
+  function syncInputs(){
+    if(st.ville&&!L.VILLES.includes(st.ville))$("#fVille").insertAdjacentHTML("beforeend",`<option>${esc(st.ville)}</option>`);
+    $("#fVille").value=st.ville;$("#fType").value=st.type;$("#fMax").value=st.max;$("#fCh").value=st.ch;$("#fSort").value=st.sort;
+    $$("[data-per]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.per===st.periode));
+  }
+  function pushUrl(){
+    const p=new URLSearchParams();
+    if(st.ville)p.set("ville",st.ville);if(st.type)p.set("type",st.type);if(st.periode)p.set("periode",st.periode);if(st.max)p.set("max",st.max);if(st.ch!=="0")p.set("ch",st.ch);if(st.sort!=="asc")p.set("tri",st.sort);
+    history.replaceState(null,"",location.pathname+(p.toString()?"?"+p:""));
+  }
+  function render(){
+    let list=all.filter(l=>(!st.ville||l.ville===st.ville)&&(!st.type||l.type===st.type)&&(!st.periode||l.periode===st.periode)&&(!st.max||l.prix<=Number(st.max))&&(l.chambres>=Number(st.ch)));
+    const asc=list.slice().sort((a,b)=>L.monthly(a)-L.monthly(b));
+    const rank=new Map(asc.map((l,i)=>[l.id,i+1]));
+    if(st.sort==="asc")list=asc;else if(st.sort==="desc")list=asc.slice().reverse();else list=list.slice().sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    const t=L.TYPES.find(x=>x.v===st.type);
+    $("#title").textContent=(t?t.pl:"Maisons")+" à louer"+(st.ville?" à "+st.ville:" en Haïti");
+    document.title=$("#title").textContent+" — LakayRent";
+    $("#count").innerHTML=`<b class="num">${list.length}</b> annonce${list.length>1?"s":""}${!st.periode&&list.some(l=>l.periode==="nuit")&&list.some(l=>l.periode==="mois")?" · les prix à la nuit sont comparés sur 30 nuits":""}`;
+    $("#ladder").innerHTML=asc.length?`<span class="num">${L.money(asc[0].prix)} / ${L.periodLabel(asc[0].periode)}</span><div class="bar"></div><span class="num">${L.money(asc[asc.length-1].prix)} / ${L.periodLabel(asc[asc.length-1].periode)}</span>`:"";
+    $("#grid").innerHTML=list.length?list.map(l=>L.card(l,{rank:rank.get(l.id)})).join(""):`<div class="empty" style="grid-column:1/-1"><h3>Aucune annonce ne correspond</h3><p>Essayez une autre ville, un autre type ou un budget plus large.</p><button class="btn btn-primary btn-sm" type="button" onclick="document.getElementById('reset').click()">Effacer les filtres</button></div>`;
+    pushUrl();
+  }
+  $("#fVille").addEventListener("change",e=>{st.ville=e.target.value;render();});
+  $("#fType").addEventListener("change",e=>{st.type=e.target.value;render();});
+  $("#fCh").addEventListener("change",e=>{st.ch=e.target.value;render();});
+  $("#fSort").addEventListener("change",e=>{st.sort=e.target.value;render();});
+  let deb;$("#fMax").addEventListener("input",e=>{clearTimeout(deb);deb=setTimeout(()=>{st.max=e.target.value;render();},250);});
+  $$("[data-per]").forEach(b=>b.addEventListener("click",()=>{st.periode=b.dataset.per;syncInputs();render();}));
+  $("#reset").addEventListener("click",()=>{Object.assign(st,{ville:"",type:"",periode:"",max:"",ch:"0",sort:"asc"});syncInputs();render();});
+  syncInputs();
+  (async()=>{
+    if(L.session())await L.loadFavs();
+    try{all=await L.getListings();render();}
+    catch(e){$("#count").textContent="";$("#grid").innerHTML=`<div class="notice err" style="grid-column:1/-1">${esc(e.message)}</div>`;}
+  })();
+})();
+</script>
+</body>
+</html>

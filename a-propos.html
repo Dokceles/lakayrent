@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>À propos, aide et contact — LakayRent</title>
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="apropos">
+<header id="site-header"></header>
+<main class="container">
+  <section class="about-hero">
+    <div>
+      <div class="eyebrow" style="color:var(--blue)">À propos</div>
+      <h1 style="font-size:clamp(32px,4vw,50px);color:var(--navy-2);margin:14px 0">Le logement en Haïti, plus simple et plus transparent</h1>
+      <p style="color:var(--muted);font-size:17px;max-width:55ch">LakayRent met en relation les propriétaires haïtiens et les locataires du monde entier : familles sur place, diaspora de retour au pays, visiteurs et professionnels en mission. Toutes les annonces sont classées du loyer le plus bas au plus élevé pour que chacun trouve vite ce qui correspond à son budget.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px"><a class="btn btn-primary" href="annonces.html">Voir les annonces</a><a class="btn btn-outline" href="connexion.html?role=proprietaire">Publier ma maison</a></div>
+    </div>
+    <img src="assets/img/annonces/a10.jpg" alt="Maison créole à Cap-Haïtien">
+  </section>
+
+  <section class="section">
+    <div class="values" id="values"></div>
+  </section>
+
+  <section class="section" id="aide">
+    <h2 class="section-title">Aide · Questions fréquentes</h2>
+    <div class="faq">
+      <details open><summary>Comment créer mon compte ?</summary><p>Cliquez sur « Se connecter », choisissez « Locataire » ou « Propriétaire », puis « Continuer avec Google ». Il n'y a pas de mot de passe à créer : votre compte Google suffit.</p></details>
+      <details><summary>Pourquoi les annonces sont-elles classées par prix ?</summary><p>Pour que chacun voie d'abord ce qui entre dans son budget. Quand vous affichez à la fois des locations au mois et à la nuit, un loyer à la nuit est comparé sur 30 nuits.</p></details>
+      <details><summary>Comment contacter un propriétaire ?</summary><p>Sur la page d'une annonce, écrivez-lui directement sur WhatsApp, ou connectez-vous et envoyez une demande de visite. Le propriétaire la voit dans son espace avec votre numéro.</p></details>
+      <details><summary>Je suis propriétaire, combien coûte la publication ?</summary><p>La publication est gratuite. Vous fixez votre loyer, au mois ou à la nuit, en dollars US, et vous pouvez masquer ou supprimer votre annonce à tout moment.</p></details>
+      <details><summary>Quelles photos ajouter ?</summary><p>Jusqu'à six photos prises de jour : la façade en premier, puis le salon, la cuisine, les chambres, la salle de bain et la vue. Les photos sont réduites automatiquement avant l'envoi.</p></details>
+      <details><summary>Comment éviter les arnaques ?</summary><p>Visitez toujours le logement avant de payer, rencontrez le propriétaire, demandez un reçu et ne versez jamais d'argent à quelqu'un qui refuse la visite. LakayRent n'encaisse aucun paiement.</p></details>
+      <details><summary>Puis-je être à la fois locataire et propriétaire ?</summary><p>Oui. Changez de type de compte à tout moment dans « Mon espace », onglet « Mon profil ». Vos annonces et vos favoris sont gardés.</p></details>
+    </div>
+  </section>
+
+  <section class="section" id="contact">
+    <h2 class="section-title">Contact</h2>
+    <div class="steps">
+      <form class="panel" id="cForm" style="display:grid;gap:14px">
+        <div class="field"><label for="cNom">Nom</label><input id="cNom" required maxlength="80"></div>
+        <div class="field"><label for="cMail">E-mail</label><input id="cMail" type="email" required maxlength="120"></div>
+        <div class="field"><label for="cMsg">Message</label><textarea id="cMsg" required maxlength="2000"></textarea></div>
+        <div id="cOut"></div>
+        <button class="btn btn-primary" type="submit" id="cGo">Envoyer le message</button>
+      </form>
+      <div class="panel" style="display:grid;gap:14px;align-content:start">
+        <h3 style="color:var(--navy-2);font-size:22px">Nous joindre directement</h3>
+        <div class="stat" id="cMailLine"></div>
+        <div class="stat" id="cWaLine"></div>
+        <p style="color:var(--muted);margin:0">Nous répondons du lundi au samedi, de 8 h à 18 h (heure d'Haïti).</p>
+      </div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,esc=L.esc,C=L.cfg;
+  $("#values").innerHTML=[["tag","Accessible","Chaque annonce affiche son loyer clairement, et le classement commence toujours par le moins cher."],["shield","Confiance","Chaque compte est relié à une adresse Google vérifiée. Les propriétaires gèrent leurs annonces depuis leur espace."],["pin","Ancré en Haïti","De Port-au-Prince au Cap, de Jacmel à Port-Salut : des logements dans tout le pays, publiés par ceux qui y vivent."]]
+    .map(([i,t,p])=>`<div class="panel">${L.icon(i)}<h3>${t}</h3><p>${p}</p></div>`).join("");
+  $("#cMailLine").innerHTML=`${L.icon("mail")}<div><b style="font-size:17px">${esc(C.CONTACT_EMAIL||"")}</b><span>E-mail</span></div>`;
+  $("#cWaLine").innerHTML=`${L.icon("whatsapp")}<div><b style="font-size:17px" class="num">${esc(C.CONTACT_WHATSAPP||"")}</b><span>WhatsApp</span></div>`;
+  const s=L.session();if(s){$("#cNom").value=s.name||"";$("#cMail").value=s.email||"";}
+  $("#cForm").addEventListener("submit",async e=>{
+    e.preventDefault();const d={nom:$("#cNom").value.trim(),email:$("#cMail").value.trim(),message:$("#cMsg").value.trim()};
+    if(!d.nom||!d.email||!d.message){$("#cOut").innerHTML='<div class="notice err">Remplissez votre nom, votre e-mail et votre message.</div>';return;}
+    $("#cGo").disabled=true;
+    try{await L.api("contact",d);$("#cForm").innerHTML='<div class="notice ok"><b>Message envoyé.</b> Nous vous répondrons par e-mail.</div>';}
+    catch(err){$("#cGo").disabled=false;$("#cOut").innerHTML=`<div class="notice err">${esc(err.message)}</div>`;}
+  });
+})();
+</script>
+</body>
+</html>

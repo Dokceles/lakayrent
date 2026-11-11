@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon espace — LakayRent</title>
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="espace">
+<header id="site-header"></header>
+<main class="container">
+  <div class="dash">
+    <aside class="dash-side">
+      <div class="panel" style="display:grid;gap:14px">
+        <div class="profile" id="profile"></div>
+        <nav class="tabs" id="tabs" role="tablist" aria-label="Mon espace"></nav>
+      </div>
+      <div id="sessionNote"></div>
+    </aside>
+    <section id="view" aria-live="polite"></section>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,$$=L.$$,esc=L.esc;
+  const s=L.requireLogin("Connectez-vous pour accéder à votre espace.");if(!s)return;
+  const isOwner=()=>L.session().role==="proprietaire";
+  const TABS_OWNER=[["annonces","Mes annonces","house"],["publier","Publier une annonce","plus"],["recues","Demandes reçues","inbox"],["favoris","Mes favoris","heart"],["profil","Mon profil","user"]];
+  const TABS_TENANT=[["favoris","Mes favoris","heart"],["demandes","Mes demandes de visite","send"],["profil","Mon profil","user"]];
+  const counts={};
+  function tabs(){return isOwner()?TABS_OWNER:TABS_TENANT;}
+  function current(){const h=location.hash.slice(1);return tabs().some(t=>t[0]===h)?h:tabs()[0][0];}
+  function renderSide(){
+    const u=L.session();
+    $("#profile").innerHTML=`${u.picture?`<img class="avatar" src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">`:`<span class="avatar">${esc((u.name||"?")[0].toUpperCase())}</span>`}<div><b>${esc(u.name)}</b><span>${esc(u.email)}</span><div style="margin-top:6px"><span class="badge ${isOwner()?"badge-sun":"badge-soft"}">${isOwner()?"Propriétaire":"Locataire"}</span></div></div>`;
+    const c=current();
+    $("#tabs").innerHTML=tabs().map(([k,t,i])=>`<button class="tab" role="tab" type="button" data-tab="${k}" aria-selected="${k===c}">${L.icon(i)}${t}${counts[k]!=null?`<span class="count num">${counts[k]}</span>`:""}</button>`).join("");
+    $$("[data-tab]").forEach(b=>b.addEventListener("click",()=>{location.hash=b.dataset.tab;}));
+    $("#sessionNote").innerHTML=L.demo?'<div class="notice">Mode démo : vos annonces et demandes restent dans ce navigateur.</div>':"";
+  }
+  window.addEventListener("hashchange",()=>{renderSide();show();});
+
+  /* ---------- vues ---------- */
+  async function show(){
+    const v=current();const el=$("#view");
+    el.innerHTML='<div class="skeleton" style="min-height:240px"></div>';
+    try{await ({annonces:vMine,publier:vPublish,recues:vReceived,favoris:vFavs,demandes:vSent,profil:vProfile})[v](el);}
+    catch(e){el.innerHTML=`<div class="notice err">${esc(e.message)}</div>`;L.handleError(e);}
+  }
+  function head(t,sub,btn){return `<div class="section-head"><h1 class="section-title" style="margin:0">${t}</h1>${btn||""}</div>${sub?`<p class="section-sub" style="margin-top:-12px">${sub}</p>`:""}`;}
+
+  async function vMine(el){
+    const o=await L.api("myListings");const list=(o.listings||[]).map(L.normalize).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    counts.annonces=list.filter(l=>l.statut==="active").length;renderSide();
+    el.innerHTML=head("Mes annonces","Vos annonces actives apparaissent dans le classement par prix.",`<a class="btn btn-primary btn-sm" href="#publier">${L.icon("plus")}Nouvelle annonce</a>`)+
+      (list.length?`<div class="row-list">${list.map(l=>`<div class="row">
+        <img src="${esc(L.photoOf(l))}" alt="">
+        <div><h4>${esc(l.titre)}</h4><div class="meta num">${esc(l.ville)} · ${esc(l.type)} · <b style="color:var(--blue)">${L.money(l.prix)} / ${L.periodLabel(l.periode)}</b></div>
+          <div class="meta">${l.statut==="active"?'<span class="badge badge-green" style="font-size:11.5px">En ligne</span>':'<span class="badge badge-soft" style="font-size:11.5px">Masquée</span>'} · publiée le ${esc(L.dateFr(l.date))}</div></div>
+        <div class="actions">
+          ${l.statut==="active"?`<a class="btn btn-ghost btn-sm" href="annonce.html?id=${encodeURIComponent(l.id)}">${L.icon("eye")}Voir</a>`:""}
+          <button class="btn btn-ghost btn-sm" type="button" data-toggle="${esc(l.id)}" data-st="${l.statut==="active"?"masquee":"active"}">${l.statut==="active"?L.icon("eyeoff")+"Masquer":L.icon("eye")+"Remettre en ligne"}</button>
+          <button class="btn btn-danger btn-sm" type="button" data-del="${esc(l.id)}">${L.icon("trash")}Supprimer</button>
+        </div></div>`).join("")}</div>`
+      :`<div class="empty"><h3>Vous n'avez pas encore d'annonce</h3><p>Publiez votre première maison en deux minutes.</p><a class="btn btn-primary btn-sm" href="#publier">Publier une annonce</a></div>`);
+    $$("[data-toggle]",el).forEach(b=>b.addEventListener("click",async()=>{b.disabled=true;try{await L.api("updateListing",{id:b.dataset.toggle,fields:{statut:b.dataset.st}});L.toast(b.dataset.st==="active"?"Annonce remise en ligne":"Annonce masquée");show();}catch(e){b.disabled=false;L.handleError(e);}}));
+    $$("[data-del]",el).forEach(b=>b.addEventListener("click",()=>{
+      const m=L.modal(`<h3>Supprimer cette annonce ?</h3><p>Elle disparaît du site et de vos annonces. Cette action ne peut pas être annulée.</p><button class="btn btn-danger" type="button" id="cDel">${L.icon("trash")}Supprimer définitivement</button>`);
+      $("#cDel").addEventListener("click",async()=>{m.classList.remove("open");try{await L.api("deleteListing",{id:b.dataset.del});L.toast("Annonce supprimée");show();}catch(e){L.handleError(e);}});
+    }));
+  }
+
+  function compress(file,max,q){return new Promise((res,rej)=>{const img=new Image();const url=URL.createObjectURL(file);img.onload=()=>{const k=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);c.getContext("2d").drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(url);res(c.toDataURL("image/jpeg",q));};img.onerror=()=>rej(new Error("Cette image ne peut pas être lue. Essayez un fichier JPG ou PNG."));img.src=url;});}
+
+  async function vPublish(el){
+    if(!isOwner()){el.innerHTML=head("Publier une annonce")+`<div class="notice">Seuls les comptes propriétaires peuvent publier. Passez en propriétaire dans <a href="#profil">votre profil</a>.</div>`;return;}
+    const u=L.session();let photos=[];
+    el.innerHTML=head("Publier une annonce","Les champs marqués * sont obligatoires. Votre annonce sera classée selon son prix.")+`
+    <form class="panel form-grid" id="pub" novalidate>
+      <div class="field s6"><label for="pTitre">Titre de l'annonce *</label><input id="pTitre" maxlength="80" required placeholder="Ex. Villa moderne avec piscine – Pétion-Ville"></div>
+      <div class="field s2"><label for="pType">Type de bien *</label><select id="pType">${L.TYPES.map(t=>`<option>${t.v}</option>`).join("")}</select></div>
+      <div class="field s2"><label for="pVille">Ville *</label><select id="pVille" required><option value="">Choisir…</option>${L.VILLES.map(v=>`<option>${esc(v)}</option>`).join("")}</select></div>
+      <div class="field s2"><label for="pQuartier">Quartier</label><input id="pQuartier" maxlength="60" placeholder="Ex. Laboule"></div>
+      <div class="field s3"><span class="label" id="perL">Loyer *</span><div class="seg" role="group" aria-labelledby="perL"><button type="button" data-p="mois" aria-pressed="true">Par mois</button><button type="button" data-p="nuit" aria-pressed="false">Par nuit</button></div></div>
+      <div class="field s3"><label for="pPrix">Montant en dollars US *</label><input id="pPrix" type="number" min="1" max="100000" step="1" inputmode="numeric" required placeholder="Ex. 600"></div>
+      <div class="field s2"><label for="pCh">Chambres</label><input id="pCh" type="number" min="0" max="30" value="2"></div>
+      <div class="field s2"><label for="pSdb">Salles de bain</label><input id="pSdb" type="number" min="0" max="30" value="1"></div>
+      <div class="field s2"><label for="pSurf">Surface (m²)</label><input id="pSurf" type="number" min="0" max="100000" placeholder="Ex. 180"></div>
+      <div class="field s3"><label for="pPers">Personnes maximum</label><input id="pPers" type="number" min="0" max="50" value="4"></div>
+      <div class="field s3"><label for="pWa">Numéro WhatsApp *</label><input id="pWa" maxlength="30" required placeholder="+509 3XXX-XXXX"><span class="hint">Affiché sur l'annonce pour que les locataires vous écrivent.</span></div>
+      <div class="field s6"><label for="pDesc">Description</label><textarea id="pDesc" maxlength="1500" placeholder="Pièces, équipements (génératrice, inverter, citerne, Wi-Fi), sécurité, accès, conditions (caution, durée minimale)…"></textarea></div>
+      <div class="field s6"><span class="label">Photos (jusqu'à 6)</span>
+        <label class="photo-drop" for="pPhotos">${L.icon("image")}<div><b>Ajouter des photos</b> · JPG ou PNG, la première sera la photo principale</div></label>
+        <input id="pPhotos" type="file" accept="image/*" multiple class="sr-only">
+        <div class="previews" id="prev"></div></div>
+      <div class="s6" id="pOut"></div>
+      <div class="s6"><button class="btn btn-primary" type="submit" id="pGo">${L.icon("check")}Publier l'annonce</button></div>
+    </form>`;
+    let per="mois";
+    $$("[data-p]",el).forEach(b=>b.addEventListener("click",()=>{per=b.dataset.p;$$("[data-p]",el).forEach(x=>x.setAttribute("aria-pressed",x===b));}));
+    $("#pType").addEventListener("change",e=>{const land=e.target.value==="Terrain";["#pCh","#pSdb","#pPers"].forEach(id=>{$(id).closest(".field").style.display=land?"none":"";});});
+    function drawPrev(){$("#prev").innerHTML=photos.map((p,i)=>`<figure><img src="${p}" alt="Photo ${i+1}"><button type="button" data-rm="${i}" aria-label="Retirer la photo ${i+1}">×</button></figure>`).join("");$$("[data-rm]",el).forEach(b=>b.addEventListener("click",()=>{photos.splice(+b.dataset.rm,1);drawPrev();}));}
+    $("#pPhotos").addEventListener("change",async e=>{
+      const files=Array.from(e.target.files||[]).slice(0,6-photos.length);
+      for(const f of files){try{photos.push(await compress(f,L.demo?900:1400,L.demo?0.7:0.82));}catch(err){L.toast(err.message);}}
+      e.target.value="";drawPrev();
+    });
+    $("#pub").addEventListener("submit",async e=>{
+      e.preventDefault();const v=id=>$(id).value.trim();
+      const listing={titre:v("#pTitre"),type:v("#pType"),ville:v("#pVille"),quartier:v("#pQuartier"),prix:Number(v("#pPrix")),periode:per,chambres:Number(v("#pCh"))||0,sdb:Number(v("#pSdb"))||0,surface:Number(v("#pSurf"))||0,voyageurs:Number(v("#pPers"))||0,description:v("#pDesc"),whatsapp:v("#pWa")};
+      if(listing.type==="Terrain"){listing.chambres=0;listing.sdb=0;listing.voyageurs=0;}
+      const miss=[!listing.titre&&"le titre",!listing.ville&&"la ville",!(listing.prix>0)&&"le loyer",!listing.whatsapp&&"le numéro WhatsApp"].filter(Boolean);
+      if(miss.length){$("#pOut").innerHTML=`<div class="notice err">Il manque ${miss.join(", ")}.</div>`;return;}
+      const b=$("#pGo");b.disabled=true;b.lastChild.textContent="Publication en cours…";$("#pOut").innerHTML="";
+      try{await L.api("createListing",{listing,photos});L.toast("Annonce publiée");location.hash="annonces";}
+      catch(err){b.disabled=false;b.lastChild.textContent="Publier l'annonce";$("#pOut").innerHTML=`<div class="notice err">${esc(err.message)}</div>`;L.handleError(err);}
+    });
+  }
+
+  function reqCard(r,mode){
+    return `<div class="req"><div class="req-head"><b>${esc(mode==="recue"?r.locataire_nom:r.annonce_titre)}</b><span class="meta">${esc(L.dateFr(r.date))}</span></div>
+      ${mode==="recue"?`<div class="meta">Pour : <a href="annonce.html?id=${encodeURIComponent(r.annonce_id)}">${esc(r.annonce_titre||"votre annonce")}</a></div>`:""}
+      ${r.date_souhaitee?`<div class="meta">${L.icon("calendar")} Visite souhaitée le ${esc(L.dateFr(r.date_souhaitee))}</div>`:""}
+      ${r.message?`<p style="margin:4px 0">${esc(r.message)}</p>`:""}
+      ${mode==="recue"?`<div style="display:flex;gap:8px;flex-wrap:wrap">${r.telephone?`<a class="btn btn-wa btn-sm" target="_blank" rel="noopener" href="https://wa.me/${esc(String(r.telephone).replace(/\D/g,""))}">${L.icon("whatsapp")}${esc(r.telephone)}</a>`:""}${r.locataire_email?`<span class="badge badge-soft">${esc(r.locataire_email)}</span>`:""}</div>`:`<div class="meta">Envoyée au propriétaire · il vous répondra au ${esc(r.telephone)}</div>`}
+    </div>`;
+  }
+  async function vReceived(el){
+    const o=await L.api("myRequests");const list=(o.received||[]).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    counts.recues=list.length;renderSide();
+    el.innerHTML=head("Demandes reçues","Les locataires intéressés par vos annonces.")+(list.length?`<div class="row-list">${list.map(r=>reqCard(r,"recue")).join("")}</div>`:`<div class="empty"><h3>Aucune demande pour l'instant</h3><p>Elles apparaîtront ici dès qu'un locataire demandera une visite.</p></div>`);
+  }
+  async function vSent(el){
+    const o=await L.api("myRequests");const list=(o.sent||[]).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    counts.demandes=list.length;renderSide();
+    el.innerHTML=head("Mes demandes de visite")+(list.length?`<div class="row-list">${list.map(r=>reqCard(r,"envoyee")).join("")}</div>`:`<div class="empty"><h3>Aucune demande envoyée</h3><p>Ouvrez une annonce et cliquez sur « Envoyer la demande ».</p><a class="btn btn-primary btn-sm" href="annonces.html">Voir les annonces</a></div>`);
+  }
+  async function vFavs(el){
+    const [favs,all]=await Promise.all([L.loadFavs(),L.getListings()]);
+    const list=all.filter(l=>favs.includes(l.id)).sort((a,b)=>L.monthly(a)-L.monthly(b));
+    counts.favoris=list.length;renderSide();
+    el.innerHTML=head("Mes favoris","Classés du moins cher au plus cher.")+(list.length?`<div class="grid">${list.map(l=>L.card(l)).join("")}</div>`:`<div class="empty"><h3>Pas encore de favoris</h3><p>Touchez le cœur d'une annonce pour la garder ici.</p><a class="btn btn-primary btn-sm" href="annonces.html">Parcourir les annonces</a></div>`);
+  }
+  async function vProfile(el){
+    const u=L.session();
+    el.innerHTML=head("Mon profil")+`<div class="panel" style="display:grid;gap:16px">
+      <div class="profile">${u.picture?`<img class="avatar" src="${esc(u.picture)}" alt="" referrerpolicy="no-referrer">`:`<span class="avatar">${esc((u.name||"?")[0].toUpperCase())}</span>`}<div><b>${esc(u.name)}</b><span>${esc(u.email)} · ${u.mode==="google"?"compte Google":"mode démo"}</span></div></div>
+      <div class="field"><span class="label" id="rl">Type de compte</span>
+        <div class="role-pick" role="group" aria-labelledby="rl">
+          <button class="role" type="button" data-r="locataire" aria-pressed="${u.role!=="proprietaire"}">${L.icon("search")}<b>Locataire</b><span>Favoris et demandes de visite</span></button>
+          <button class="role" type="button" data-r="proprietaire" aria-pressed="${u.role==="proprietaire"}">${L.icon("key")}<b>Propriétaire</b><span>Publier et gérer mes annonces</span></button>
+        </div></div>
+      <div><button class="btn btn-ghost" type="button" id="out">${L.icon("logout")}Se déconnecter</button></div>
+    </div>`;
+    $$("[data-r]",el).forEach(b=>b.addEventListener("click",async()=>{
+      if(b.dataset.r===u.role)return;
+      try{await L.api("setRole",{role:b.dataset.r});const s2=L.session();s2.role=b.dataset.r;L.saveSession(s2);L.toast(b.dataset.r==="proprietaire"?"Vous êtes maintenant propriétaire":"Vous êtes maintenant locataire");location.hash=b.dataset.r==="proprietaire"?"publier":"favoris";renderSide();show();}
+      catch(e){L.handleError(e);}
+    }));
+    $("#out").addEventListener("click",L.logout);
+  }
+  renderSide();show();
+})();
+</script>
+</body>
+</html>

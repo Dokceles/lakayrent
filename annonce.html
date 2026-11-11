@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annonce — LakayRent</title>
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="annonces">
+<header id="site-header"></header>
+<main class="container">
+  <div style="padding-top:22px"><a class="btn btn-ghost btn-sm" href="annonces.html" id="back">Retour aux annonces</a></div>
+  <div id="root"><div class="detail"><div class="skeleton" style="min-height:420px"></div><div class="skeleton"></div></div></div>
+  <section class="section" id="similar" hidden>
+    <h2 class="section-title">Annonces similaires</h2>
+    <div class="grid four" id="simGrid"></div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,$$=L.$$,esc=L.esc;
+  $("#back").insertAdjacentHTML("afterbegin",L.icon("back"));
+  const id=L.param("id");
+  function waLink(l){
+    const digits=String(l.whatsapp||"").replace(/\D/g,"");
+    const txt=`Bonjour, je suis intéressé(e) par votre annonce « ${l.titre} » (${L.money(l.prix)} / ${L.periodLabel(l.periode)}) vue sur LakayRent.`;
+    return digits?`https://wa.me/${digits}?text=${encodeURIComponent(txt)}`:"";
+  }
+  function requestBlock(l){
+    const s=L.session();
+    if(!s)return `<a class="btn btn-outline btn-block" href="connexion.html?role=locataire&next=${encodeURIComponent("annonce.html?id="+l.id)}">${L.icon("calendar")}Se connecter pour demander une visite</a>`;
+    if(s.id===l.proprietaire_id)return `<div class="notice info">C'est votre annonce. Gérez-la depuis <a href="espace.html">votre espace</a>.</div>`;
+    return `<form id="reqForm" class="panel" style="display:grid;gap:12px;box-shadow:none">
+      <h3 style="font-size:19px;color:var(--navy-2)">Demander une visite</h3>
+      <div class="field"><label for="rDate">Date souhaitée</label><input id="rDate" type="date" min="${new Date().toISOString().slice(0,10)}"></div>
+      <div class="field"><label for="rTel">Votre téléphone ou WhatsApp</label><input id="rTel" maxlength="30" placeholder="+509 … ou +33 …" required></div>
+      <div class="field"><label for="rMsg">Message</label><textarea id="rMsg" maxlength="800" placeholder="Présentez-vous, durée de location souhaitée, nombre de personnes…"></textarea></div>
+      <div id="rOut"></div>
+      <button class="btn btn-primary" type="submit">${L.icon("send")}Envoyer la demande</button>
+    </form>`;
+  }
+  function render(l,all){
+    document.title=l.titre+" — LakayRent";
+    const photos=l.photos.length?l.photos:[L.photoOf(l)];
+    const isLand=l.type==="Terrain";
+    const specs=[
+      !isLand&&[L.icon("bed"),l.chambres,"Chambres"],
+      !isLand&&[L.icon("bath"),l.sdb,"Salles de bain"],
+      l.surface&&[L.icon("ruler"),l.surface+" m²","Surface"],
+      !isLand&&l.voyageurs&&[L.icon("users"),l.voyageurs,"Personnes max"],
+      [L.icon("calendar"),l.periode==="nuit"?"Courte durée":"Longue durée",l.periode==="nuit"?"Loyer à la nuit":"Loyer au mois"]
+    ].filter(Boolean);
+    const wa=waLink(l);
+    $("#root").innerHTML=`<div class="detail">
+      <div>
+        <div class="gallery">
+          <div class="gallery-main"><img id="mainImg" src="${esc(photos[0])}" alt="${esc(l.type)} à ${esc(l.ville)}"></div>
+          ${photos.length>1?`<div class="thumbs">${photos.map((p,i)=>`<button type="button" data-i="${i}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img src="${esc(p)}" alt=""></button>`).join("")}</div>`:""}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:18px"><span class="badge badge-green">À louer</span><span class="badge badge-soft">${esc(l.type)}</span>${l.exemple?'<span class="badge badge-dark">Annonce d\'exemple</span>':""}</div>
+        <h1>${esc(l.titre)}</h1>
+        <div class="loc">${L.icon("pin")}${esc([l.quartier,l.ville].filter(Boolean).join(", "))}, Haïti</div>
+        <div class="spec-grid num">${specs.map(([i,v,t])=>`<div>${i}<b>${esc(v)}</b><span>${esc(t)}</span></div>`).join("")}</div>
+        <h2 class="section-title" style="font-size:24px;margin-bottom:12px">Description</h2>
+        <p class="desc">${esc(l.description||"Le propriétaire n'a pas encore ajouté de description.")}</p>
+      </div>
+      <aside class="panel contact-card">
+        <div><div class="price num">${L.money(l.prix)} <small>/ ${L.periodLabel(l.periode)}</small></div>
+          ${l.periode==="nuit"?`<div class="hint" style="color:var(--muted);font-size:13px">Soit environ ${L.money(l.prix*30)} pour 30 nuits</div>`:""}</div>
+        <div class="owner-line"><span class="avatar">${esc((l.proprietaire_nom||"P")[0].toUpperCase())}</span><div><b>${esc(l.proprietaire_nom||"Propriétaire")}</b><span>Propriétaire${l.date?" · publié le "+esc(L.dateFr(l.date)):""}</span></div></div>
+        ${wa?`<a class="btn btn-wa btn-block" href="${esc(wa)}" target="_blank" rel="noopener">${L.icon("whatsapp")}Écrire sur WhatsApp</a><div class="wa-number num">${esc(l.whatsapp)}</div>`:""}
+        <button class="btn btn-ghost btn-block" type="button" data-fav="${esc(l.id)}" aria-pressed="${L.favs().includes(l.id)}" id="favBig">${L.icon("heart")}<span>${L.favs().includes(l.id)?"Dans vos favoris":"Ajouter aux favoris"}</span></button>
+        <div class="divider">ou</div>
+        ${requestBlock(l)}
+      </aside>
+    </div>`;
+    $$(".thumbs button").forEach(b=>b.addEventListener("click",()=>{$("#mainImg").src=photos[+b.dataset.i];$$(".thumbs button").forEach(x=>x.setAttribute("aria-current",x===b));}));
+    const fb=$("#favBig");fb.addEventListener("click",()=>setTimeout(()=>{fb.querySelector("span").textContent=fb.getAttribute("aria-pressed")==="true"?"Dans vos favoris":"Ajouter aux favoris";},50));
+    const f=$("#reqForm");
+    if(f)f.addEventListener("submit",async e=>{
+      e.preventDefault();const tel=$("#rTel").value.trim();
+      if(!tel){$("#rOut").innerHTML='<div class="notice err">Ajoutez un numéro pour que le propriétaire puisse vous répondre.</div>';return;}
+      const b=f.querySelector("button[type=submit]");b.disabled=true;
+      try{await L.api("sendRequest",{annonceId:l.id,annonceTitre:l.titre,proprietaireId:l.proprietaire_id,date:$("#rDate").value,telephone:tel,message:$("#rMsg").value.trim()});
+        f.innerHTML='<div class="notice ok"><b>Demande envoyée.</b> Le propriétaire la voit dans son espace. Suivez-la dans <a href="espace.html#demandes">vos demandes</a>.</div>';}
+      catch(err){b.disabled=false;L.handleError(err);}
+    });
+    const sim=all.filter(x=>x.id!==l.id&&(x.ville===l.ville||x.type===l.type)).sort((a,b)=>Math.abs(L.monthly(a)-L.monthly(l))-Math.abs(L.monthly(b)-L.monthly(l))).slice(0,4);
+    if(sim.length){$("#similar").hidden=false;$("#simGrid").innerHTML=sim.map(x=>L.card(x)).join("");}
+  }
+  (async()=>{
+    if(L.session())await L.loadFavs();
+    try{
+      const all=await L.getListings();const l=all.find(x=>x.id===id);
+      if(!l){$("#root").innerHTML=`<div class="empty" style="margin:30px 0 60px"><h3>Annonce introuvable</h3><p>Elle a peut-être été retirée par son propriétaire.</p><a class="btn btn-primary btn-sm" href="annonces.html">Voir les annonces</a></div>`;return;}
+      render(l,all);
+    }catch(e){$("#root").innerHTML=`<div class="notice err" style="margin:30px 0">${esc(e.message)}</div>`;}
+  })();
+})();
+</script>
+</body>
+</html>

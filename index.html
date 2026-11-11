@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LakayRent — Trouvez la maison idéale en Haïti</title>
+<meta name="description" content="Louez des maisons, appartements, villas et terrains en Haïti, classés du moins cher au plus cher. Propriétaires : publiez votre annonce avec votre compte Google.">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+<header id="site-header"></header>
+
+<main>
+  <section class="hero" style="background-image:url('assets/img/hero.jpg')">
+    <div class="container hero-inner">
+      <div>
+        <div class="eyebrow">Haïti · Logement · Confiance</div>
+        <h1>Trouvez la maison idéale <em>en Haïti</em></h1>
+        <p class="lead">Louez facilement des maisons, appartements et villas du monde entier, du moins cher au plus cher.</p>
+        <form class="searchbar" id="search" action="annonces.html">
+          <div class="sb-field"><span class="sb-ico" id="icoLieu"></span><div style="flex:1;min-width:0"><label for="sVille">Lieu</label><select id="sVille" name="ville"><option value="">Tout Haïti</option></select></div></div>
+          <div class="sb-field"><span class="sb-ico" id="icoType"></span><div style="flex:1;min-width:0"><label for="sType">Type de bien</label><select id="sType" name="type"><option value="">Maison, Appartement…</option></select></div></div>
+          <div class="sb-field"><span class="sb-ico" id="icoPrix"></span><div style="flex:1;min-width:0"><label for="sMax">Prix maximum</label><select id="sMax" name="max">
+            <option value="">Aucune limite</option><option value="100">$100</option><option value="250">$250</option><option value="500">$500</option><option value="1000">$1,000</option><option value="2500">$2,500</option></select></div></div>
+          <button class="btn btn-primary" type="submit" id="sGo">Rechercher</button>
+        </form>
+      </div>
+      <aside class="hero-note" id="heroNote"></aside>
+    </div>
+  </section>
+
+  <div class="container cats">
+    <nav class="cats-bar" id="cats" aria-label="Catégories"></nav>
+  </div>
+
+  <section class="section">
+    <div class="container split">
+      <div>
+        <div class="section-head">
+          <h2 class="section-title">Nos offres à la une</h2>
+          <a class="btn btn-ghost btn-sm" href="annonces.html">Voir toutes les annonces <span id="arr1"></span></a>
+        </div>
+        <p class="section-sub">Les loyers les plus accessibles du moment, du moins cher au plus cher.</p>
+        <div class="grid four" id="featured">
+          <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+        </div>
+      </div>
+      <aside>
+        <div class="panel stats" id="stats"></div>
+        <div class="owner-cta">
+          <div class="head"><span id="icoHand"></span><div><h3>Propriétaire ?</h3><p>Louez votre maison en toute simplicité, avec votre compte Google.</p></div></div>
+          <a class="btn btn-sun" href="connexion.html?role=proprietaire">Publier une annonce <span id="arr2"></span></a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:10px">
+    <div class="container">
+      <h2 class="section-title">Comment ça marche</h2>
+      <div class="steps">
+        <div class="panel">
+          <h3 id="stepsLoc">Vous cherchez un logement</h3>
+          <ol>
+            <li><div><b>Recherchez par ville, type et budget</b><span>Les annonces sont classées du loyer le plus bas au plus élevé.</span></div></li>
+            <li><div><b>Connectez-vous avec Google</b><span>Gardez vos favoris et suivez vos demandes de visite.</span></div></li>
+            <li><div><b>Contactez le propriétaire</b><span>Sur WhatsApp ou avec une demande de visite depuis l'annonce.</span></div></li>
+          </ol>
+        </div>
+        <div class="panel">
+          <h3 id="stepsProp">Vous êtes propriétaire</h3>
+          <ol>
+            <li><div><b>Créez votre espace propriétaire</b><span>Un clic avec votre compte Google, sans mot de passe à retenir.</span></div></li>
+            <li><div><b>Publiez votre annonce</b><span>Photos, loyer au mois ou à la nuit, chambres, description.</span></div></li>
+            <li><div><b>Recevez les demandes</b><span>Les locataires intéressés apparaissent dans votre espace.</span></div></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:10px">
+    <div class="container">
+      <h2 class="section-title">Villes populaires</h2>
+      <div class="cities" id="cities"></div>
+    </div>
+  </section>
+</main>
+
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,esc=L.esc;
+  $("#icoLieu").innerHTML=L.icon("pin");$("#icoType").innerHTML=L.icon("house");$("#icoPrix").innerHTML=L.icon("tag");
+  $("#sGo").insertAdjacentHTML("afterbegin",L.icon("search"));
+  $("#arr1").outerHTML=L.icon("arrow");$("#arr2").outerHTML=L.icon("arrow");$("#icoHand").outerHTML=L.icon("handshake");
+  $("#stepsLoc").insertAdjacentHTML("afterbegin",L.icon("search"));$("#stepsProp").insertAdjacentHTML("afterbegin",L.icon("key"));
+  $("#sVille").insertAdjacentHTML("beforeend",L.VILLES.map(v=>`<option>${esc(v)}</option>`).join(""));
+  $("#sType").insertAdjacentHTML("beforeend",L.TYPES.map(t=>`<option value="${esc(t.v)}">${esc(t.pl)}</option>`).join(""));
+  $("#heroNote").innerHTML=L.flag+`Ensemble pour un logement accessible en Haïti ${L.icon("heart")}<svg class="swoosh" viewBox="0 0 120 14" aria-hidden="true"><path d="M2 10C30 2 70 2 118 8" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>`;
+  $("#cats").innerHTML=L.TYPES.map(t=>`<a class="cat" href="annonces.html?type=${encodeURIComponent(t.v)}">${L.icon(t.icon)}${esc(t.pl)}</a>`).join("")+`<a class="cats-all" href="annonces.html">Voir toutes les catégories ${L.icon("arrow")}</a>`;
+  $("#search").addEventListener("submit",e=>{
+    e.preventDefault();const p=new URLSearchParams();
+    if($("#sVille").value)p.set("ville",$("#sVille").value);if($("#sType").value)p.set("type",$("#sType").value);if($("#sMax").value)p.set("max",$("#sMax").value);
+    location.href="annonces.html"+(p.toString()?"?"+p:"");
+  });
+  function stats(list){
+    const villes=new Set(list.map(l=>l.ville)).size;
+    const props=new Set(list.map(l=>l.proprietaire_id).filter(Boolean)).size;
+    $("#stats").innerHTML=`
+      <div class="stat">${L.icon("house")}<div><b class="num">${list.length}</b><span>annonces disponibles</span></div></div>
+      <div class="stat">${L.icon("pin")}<div><b class="num">${villes}</b><span>villes couvertes</span></div></div>
+      <div class="stat">${L.icon("users")}<div><b class="num">${props}</b><span>propriétaire${props>1?"s":""} inscrit${props>1?"s":""}</span></div></div>
+      <div class="stat">${L.icon("shield")}<div><span style="color:var(--text);font-weight:600">Comptes vérifiés par Google</span></div></div>`;
+  }
+  (async()=>{
+    if(L.session())L.loadFavs();
+    try{
+      const list=(await L.getListings()).slice().sort((a,b)=>L.monthly(a)-L.monthly(b));
+      $("#featured").innerHTML=list.length?list.slice(0,4).map(l=>L.card(l)).join(""):`<div class="empty" style="grid-column:1/-1"><h3>Aucune annonce pour l'instant</h3><p>Soyez le premier propriétaire à publier.</p></div>`;
+      stats(list);
+      const counts={};list.forEach(l=>counts[l.ville]=(counts[l.ville]||0)+1);
+      $("#cities").innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([v,n])=>`<a class="city" href="annonces.html?ville=${encodeURIComponent(v)}"><span>${esc(v)}</span><small class="num">${n} annonce${n>1?"s":""}</small></a>`).join("");
+    }catch(e){
+      $("#featured").innerHTML=`<div class="notice err" style="grid-column:1/-1">${esc(e.message)}</div>`;stats([]);
+    }
+  })();
+})();
+</script>
+</body>
+</html>

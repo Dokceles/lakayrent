@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — LakayRent</title>
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="connexion">
+<header id="site-header"></header>
+<main class="container">
+  <div class="auth-wrap">
+    <div class="auth-art" style="background-image:url('assets/img/annonces/a7.jpg')">
+      <div><h2>Bienvenue sur LakayRent</h2><p style="margin:8px 0 0;max-width:36ch">Un seul compte Google pour louer une maison ou publier la vôtre.</p></div>
+    </div>
+    <div class="auth-panel" id="panel">
+      <h1>Se connecter</h1>
+      <div id="msg"></div>
+      <div>
+        <div class="field" style="margin-bottom:8px"><span class="label" id="roleLbl">Je suis…</span></div>
+        <div class="role-pick" role="group" aria-labelledby="roleLbl">
+          <button class="role" type="button" data-role="locataire" aria-pressed="false"><span id="i1"></span><b>Locataire</b><span>Je cherche une maison à louer</span></button>
+          <button class="role" type="button" data-role="proprietaire" aria-pressed="false"><span id="i2"></span><b>Propriétaire</b><span>Je veux louer ma maison</span></button>
+        </div>
+        <p class="hint" style="font-size:13px;color:var(--muted);margin:8px 0 0">Déjà inscrit ? Votre rôle est gardé. Vous pourrez en changer dans votre espace.</p>
+      </div>
+      <div class="g-wrap" id="gbtn"></div>
+      <div id="demoBlock" hidden>
+        <div class="divider">mode démo</div>
+        <form id="demoForm" style="display:grid;gap:10px;margin-top:12px">
+          <div class="field"><label for="dName">Votre nom</label><input id="dName" required maxlength="60" value="Dave Célestin"></div>
+          <div class="field"><label for="dEmail">Adresse e-mail (fictive acceptée)</label><input id="dEmail" type="email" required maxlength="80" value="dave@exemple.ht"></div>
+          <button class="btn btn-primary" type="submit">Entrer en mode démo</button>
+          <p class="hint" style="font-size:12.5px;color:var(--muted);margin:0">Le mode démo garde tout dans ce navigateur. Il disparaît dès que le site est relié à Google (voir le README).</p>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+<footer id="site-footer"></footer>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/core.js"></script>
+<script>
+(function(){
+  const L=Lakay,$=L.$,$$=L.$$,esc=L.esc;
+  $("#i1").outerHTML=L.icon("search");$("#i2").outerHTML=L.icon("key");
+  let role=L.param("role");
+  const next=L.param("next")||"espace.html";
+  const safeNext=/^[a-z0-9\-]+\.html([?#].*)?$/i.test(next)?next:"espace.html";
+  function setRole(r){role=r;$$("[data-role]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.role===r));}
+  $$("[data-role]").forEach(b=>b.addEventListener("click",()=>setRole(b.dataset.role)));
+  if(role)setRole(role);
+  if(L.param("msg"))$("#msg").innerHTML=`<div class="notice info">${esc(L.param("msg"))}</div>`;
+
+  async function done(s){
+    if(!s.role){
+      if(!role){$("#msg").innerHTML='<div class="notice">Choisissez « Locataire » ou « Propriétaire », puis continuez.</div>';
+        $$("[data-role]").forEach(b=>b.addEventListener("click",async()=>{await L.api("setRole",{role:b.dataset.role});s.role=b.dataset.role;L.saveSession(s);location.href=safeNext;},{once:true}));return;}
+      await L.api("setRole",{role});s.role=role;L.saveSession(s);
+    }
+    location.href=safeNext;
+  }
+  const cur=L.session();
+  if(cur&&L.tokenValid(cur)){
+    $("#panel").innerHTML=`<h1>Vous êtes connecté</h1><p>Bonjour ${esc(cur.name)} (${esc(cur.email)}).</p><a class="btn btn-primary" href="${esc(safeNext)}">Continuer vers mon espace</a><button class="btn btn-ghost" type="button" id="out">Se déconnecter</button>`;
+    $("#out").addEventListener("click",L.logout);return;
+  }
+  L.renderGoogleButton($("#gbtn"),()=>role,done,e=>{$("#msg").innerHTML=`<div class="notice err">${esc(e.message)}</div>`;});
+  if(L.demo){
+    $("#demoBlock").hidden=false;
+    $("#demoForm").addEventListener("submit",async e=>{e.preventDefault();
+      if(!role){$("#msg").innerHTML='<div class="notice">Choisissez d\'abord « Locataire » ou « Propriétaire ».</div>';return;}
+      const s=await L.demoLogin($("#dName").value.trim(),$("#dEmail").value.trim().toLowerCase(),role);
+      const users=L.store.get("demo_users",{});s.role=(users[s.id]&&users[s.id].role)||role;L.saveSession(s);location.href=safeNext;});
+  }
+})();
+</script>
+</body>
+</html>
