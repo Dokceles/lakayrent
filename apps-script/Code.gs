@@ -27,8 +27,10 @@ const SHEETS = {
   Utilisateurs: ["id", "email", "nom", "photo", "role", "date", "derniere_connexion"],
   Favoris: ["user_id", "annonce_id", "date"],
   Demandes: ["id", "annonce_id", "annonce_titre", "proprietaire_id", "locataire_id", "locataire_nom", "locataire_email", "telephone", "date_souhaitee", "message", "date", "statut"],
-  Messages: ["date", "nom", "email", "message"]
+  Messages: ["date", "nom", "email", "message"],
+  Visites: ["date", "visiteur", "session", "type", "page", "annonce_id", "source", "appareil", "fuseau", "langue", "detail"]
 };
+const HIT_TYPES = ["pageview", "whatsapp", "recherche", "favori", "demande", "publication", "connexion", "contact", "erreur"];
 // Colonnes publiées dans le CSV public (jamais l'e-mail du propriétaire)
 const PUBLIC_COLS = SHEETS.Annonces.filter(function (c) { return c !== "proprietaire_email"; });
 const TYPES = ["Maison", "Appartement", "Villa", "Bungalow", "Studio", "Terrain"];
@@ -80,6 +82,7 @@ function doPost(e) {
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, error: "Requête invalide." }); }
   const action = body.action;
   try {
+    if (action === "hit") return json_(hit_(body));
     if (action === "contact") return json_(contact_(body));
     const user = verify_(body.idToken);
     const handlers = {
@@ -252,6 +255,21 @@ function myRequests_(u) {
     received: all.filter(function (r) { return r.proprietaire_id === u.id; }),
     sent: all.filter(function (r) { return r.locataire_id === u.id; }).map(function (r) { return { id: r.id, annonce_id: r.annonce_id, annonce_titre: r.annonce_titre, telephone: r.telephone, date_souhaitee: r.date_souhaitee, message: r.message, date: r.date, statut: r.statut }; })
   };
+}
+
+/* ======================= mesure d'audience (anonyme) ======================= */
+function hit_(b) {
+  const type = HIT_TYPES.indexOf(b.t) >= 0 ? b.t : "";
+  if (!type) return { ok: false };
+  let sh = ss_().getSheetByName("Visites");
+  if (!sh) {
+    sh = ss_().insertSheet("Visites");
+    sh.appendRow(SHEETS.Visites); sh.setFrozenRows(1);
+    sh.getRange(1, 1, sh.getMaxRows(), SHEETS.Visites.length).setNumberFormat("@");
+  }
+  sh.appendRow([new Date().toISOString(), clean_(b.v, 20), clean_(b.x, 20), type, clean_(b.p, 30), clean_(b.a, 20),
+    clean_(b.s, 40), clean_(b.d, 12), clean_(b.z, 40), clean_(b.l, 10), safe_(clean_(b.detail, 200))]);
+  return { ok: true };
 }
 
 /* ======================= contact ======================= */

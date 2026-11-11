@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Tableau de bord de pilotage : bandeau d'alertes, tuiles KPI avec évolution, courbes, classements et santé technique. */
+:root{
+  --navy:#13296B;--navy-2:#0C1C4F;--blue:#2F5BD3;--orange:#E8890C;--sun:#F7A81B;--lav:#E9E8F8;--sky:#8DB9F0;
+  --bg:#F6F6FD;--surface:#FFFFFF;--text:#13183A;--muted:#5C6185;--line:#E3E3F2;
+  --good:#1F9D6B;--warn:#B7791F;--crit:#C53030;--info:#2F5BD3;
+  --display:"Outfit",system-ui,sans-serif;--body:"Plus Jakarta Sans",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--body);font-size:14.5px;line-height:1.5}
+h1,h2,h3{font-family:var(--display);margin:0;line-height:1.15}
+.num{font-variant-numeric:tabular-nums}
+a{color:var(--blue)}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 50px}
+.top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--navy);color:#fff;border-radius:22px;padding:16px 20px;margin-bottom:16px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:22px;font-weight:700}
+.brand span{color:var(--sun)}
+.brand small{font-family:var(--body);font-weight:500;font-size:13px;opacity:.75;margin-left:4px}
+.live{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);padding:6px 12px;border-radius:999px;font-weight:600;font-size:13px}
+.live i{width:9px;height:9px;border-radius:99px;background:#4ADE80;box-shadow:0 0 0 4px rgba(74,222,128,.25)}
+.spacer{flex:1}
+.seg{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:#fff;font:inherit;font-weight:600;font-size:13px;padding:7px 13px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--navy)}
+.top a.lnk{color:#fff;opacity:.85;font-size:13px;font-weight:600;text-decoration:none;border:1px solid rgba(255,255,255,.3);padding:6px 12px;border-radius:999px}
+.top a.lnk:hover{opacity:1;background:rgba(255,255,255,.1)}
+.btn{border:0;background:var(--sun);color:var(--navy-2);font:inherit;font-weight:700;font-size:13px;padding:7px 14px;border-radius:999px;cursor:pointer}
+.meta{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.alerts{display:grid;gap:8px;margin-bottom:16px}
+.alert{display:flex;gap:10px;align-items:flex-start;padding:10px 14px;border-radius:14px;font-size:14px;border:1px solid}
+.alert b{font-family:var(--display);min-width:68px}
+.alert.critical{background:#FDECEC;border-color:#F5C2C2;color:#7A1D1D}
+.alert.warning{background:#FFF6E0;border-color:#F3DCA0;color:#6B4A0E}
+.alert.info{background:#EEF3FE;border-color:#CDDAF8;color:#1C3274}
+.grid-k{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:1000px){.grid-k{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.k{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:grid;gap:4px}
+.k .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.k .v{font-family:var(--display);font-size:28px;font-weight:700;color:var(--navy-2)}
+.k .s{font-size:12.5px;color:var(--muted)}
+.delta{font-size:12px;font-weight:700;border-radius:999px;padding:2px 8px;justify-self:start}
+.delta.up{background:#E6F6EF;color:#166B49}.delta.down{background:#FDECEC;color:#9B2C2C}.delta.flat{background:var(--lav);color:var(--muted)}
+.row{display:grid;gap:12px;margin-bottom:16px}
+.r2{grid-template-columns:2fr 1fr}.r3{grid-template-columns:repeat(3,minmax(0,1fr))}.r4{grid-template-columns:repeat(4,minmax(0,1fr))}.r11{grid-template-columns:1fr 1fr}
+@media (max-width:1000px){.r2,.r3,.r4,.r11{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px 18px;min-width:0}
+.card h2{font-size:16px;color:var(--navy-2);margin-bottom:4px}
+.card .sub{font-size:12.5px;color:var(--muted);margin:0 0 12px}
+.chartbox{position:relative;height:260px}
+.bars{display:grid;gap:9px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:13.5px}
+.bar .track{grid-column:1/-1;height:8px;background:var(--lav);border-radius:99px;overflow:hidden}
+.bar .fill{height:100%;background:var(--blue);border-radius:99px}
+.bar .n{font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:12px;color:var(--muted);font-weight:600;padding:0 8px 8px 0;border-bottom:1px solid var(--line)}
+td{padding:9px 8px 9px 0;border-bottom:1px solid var(--line);vertical-align:top}
+th.r,td.r{text-align:right}
+.tag{font-size:11px;font-weight:700;background:var(--lav);color:var(--muted);border-radius:999px;padding:1px 7px;margin-left:6px}
+.mini{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.mini div{background:var(--bg);border-radius:12px;padding:10px 12px}
+.mini b{display:block;font-family:var(--display);font-size:20px;color:var(--navy-2)}
+.mini span{font-size:12px;color:var(--muted)}
+.gauge{height:8px;background:var(--lav);border-radius:99px;overflow:hidden;margin:6px 0 2px}
+.gauge i{display:block;height:100%;background:var(--good)}
+.empty{color:var(--muted);font-size:13.5px;padding:10px 0}
+.loading{display:grid;place-items:center;min-height:60vh;color:var(--muted);font-size:15px}
+.err{background:#FDECEC;color:#7A1D1D;padding:14px;border-radius:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span style="color:#fff">Lakay<span>Rent</span></span><small>Pilotage</small></div>
+    <span class="live" id="live"><i></i><span>— en ce moment</span></span>
+    <div class="spacer"></div>
+    <div class="seg" role="group" aria-label="Période">
+      <button type="button" data-d="7" aria-pressed="false">7 jours</button>
+      <button type="button" data-d="30" aria-pressed="true">30 jours</button>
+      <button type="button" data-d="90" aria-pressed="false">90 jours</button>
+    </div>
+    <button class="btn" type="button" id="refresh">Actualiser</button>
+    <a class="lnk" id="lSite" href="#" target="_blank" rel="noopener">Ouvrir le site</a>
+    <a class="lnk" id="lSheet" href="#" target="_blank" rel="noopener">Feuille de données</a>
+  </header>
+  <p class="meta" id="meta"></p>
+  <div id="root"><div class="loading">Chargement des indicateurs…</div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nf=n=>Number(n||0).toLocaleString("fr-FR",{maximumFractionDigits:1});
+const pc=x=>x==null?"—":Math.round(x*100)+" %";
+const money=n=>"$"+Math.round(n||0).toLocaleString("en-US");
+let days=30, charts=[];
+function delta(c,p,inverse){
+  if(p==null||c==null) return "";
+  if(!p&&!c) return `<span class="delta flat">= stable</span>`;
+  if(!p) return `<span class="delta ${inverse?"down":"up"}">nouveau</span>`;
+  const d=(c-p)/p, up=d>=0, good=inverse?!up:up;
+  if(Math.abs(d)<0.005) return `<span class="delta flat">= stable</span>`;
+  return `<span class="delta ${good?"up":"down"}">${up?"▲":"▼"} ${Math.abs(Math.round(d*100))} %</span>`;
+}
+function kpi(label,val,sub,c,p,inverse){return `<div class="k"><span class="l">${label}</span><span class="v num">${val}</span>${delta(c,p,inverse)}<span class="s">${sub||""}</span></div>`;}
+function bars(list,fmt){
+  if(!list.length) return `<div class="empty">Pas encore de données.</div>`;
+  const max=Math.max(...list.map(x=>x[1]));
+  return `<div class="bars">${list.map(([k,v])=>`<div class="bar"><span>${esc(k)}</span><span class="n num">${fmt?fmt(v):nf(v)}</span><div class="track"><div class="fill" style="width:${Math.max(3,v/max*100)}%"></div></div></div>`).join("")}</div>`;
+}
+function render(d){
+  charts.forEach(c=>c.destroy());charts=[];
+  const c=d.cur,p=d.prev;
+  $("#live span").textContent=`${d.liveVisitors} visiteur${d.liveVisitors>1?"s":""} en ce moment`;
+  $("#lSite").href=d.siteUrl;$("#lSheet").href=d.sheetUrl;
+  $("#meta").textContent=`${d.days} derniers jours, comparés aux ${d.days} jours précédents · mis à jour à ${new Date(d.generated).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})} · actualisation automatique toutes les 5 minutes`;
+  const lvl={critical:"Urgent",warning:"Attention",info:"Info"};
+  $("#root").innerHTML=`
+  ${d.alerts.length?`<div class="alerts">${d.alerts.map(a=>`<div class="alert ${a.level}"><b>${lvl[a.level]}</b><span>${esc(a.text)}</span></div>`).join("")}</div>`:""}
+  <div class="grid-k">
+    ${kpi("Visiteurs uniques",nf(c.visitors),`${nf(c.sessions)} visites`,c.visitors,p.visitors)}
+    ${kpi("Pages vues",nf(c.pageviews),`${nf(c.pagesPerSession)} pages par visite`,c.pageviews,p.pageviews)}
+    ${kpi("Fiches d'annonces consultées",nf(c.detailViews),`${nf(c.recherches)} recherches lancées`,c.detailViews,p.detailViews)}
+    ${kpi("Contacts propriétaires",nf(c.whatsapp+c.demandes),`${nf(c.whatsapp)} WhatsApp · ${nf(c.demandes)} demandes de visite`,c.whatsapp+c.demandes,p.whatsapp+p.demandes)}
+    ${kpi("Taux de contact",pc(c.contactRate),"contacts ÷ fiches consultées",c.contactRate,p.contactRate)}
+    ${kpi("Taux de rebond",pc(c.bounceRate),"visites d'une seule page",c.bounceRate,p.bounceRate,true)}
+    ${kpi("Nouveaux comptes",nf(c.newUsers),`${nf(c.connexions)} connexions`,c.newUsers,p.newUsers)}
+    ${kpi("Nouvelles annonces réelles",nf(c.newListings),`${nf(c.favoris)} ajouts en favori`,c.newListings,p.newListings)}
+  </div>
+  <div class="row r2">
+    <div class="card"><h2>Fréquentation par jour</h2><p class="sub">Visiteurs uniques et pages vues, heure d'Haïti</p><div class="chartbox"><canvas id="cTraffic" aria-label="Courbe des visiteurs et pages vues par jour"></canvas></div></div>
+    <div class="card"><h2>Contacts par jour</h2><p class="sub">Clics WhatsApp et demandes de visite</p><div class="chartbox"><canvas id="cContacts" aria-label="Barres des contacts par jour"></canvas></div></div>
+  </div>
+  <div class="row r4">
+    <div class="card"><h2>D'où viennent les visiteurs</h2><p class="sub">Source de la visite</p>${bars(d.sources)}</div>
+    <div class="card"><h2>Pays (approximatif)</h2><p class="sub">D'après le fuseau horaire · part d'Haïti : ${pc(c.haitiShare)}</p>${bars(d.origins)}</div>
+    <div class="card"><h2>Appareils</h2><p class="sub">Part mobile : ${pc(c.mobileShare)}</p>${bars(d.devices)}</div>
+    <div class="card"><h2>Pages les plus vues</h2><p class="sub">Pages vues sur la période</p>${bars(d.pages)}</div>
+  </div>
+  <div class="row r11">
+    <div class="card"><h2>Annonces les plus consultées</h2><p class="sub">Vues de la fiche et contacts générés</p>
+      ${d.topListings.length?`<table class="num"><thead><tr><th>Annonce</th><th class="r">Vues</th><th class="r">Contacts</th><th class="r">Taux</th></tr></thead><tbody>${d.topListings.map(t=>`<tr><td><a href="${esc(d.siteUrl)}annonce.html?id=${encodeURIComponent(t.id)}">${esc(t.titre)}</a>${t.exemple?'<span class="tag">exemple</span>':""}<div style="color:var(--muted);font-size:12px">${esc(t.ville)} · ${esc(t.prix)}</div></td><td class="r">${t.vues}</td><td class="r">${t.contacts}</td><td class="r">${pc(t.vues?t.contacts/t.vues:null)}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">Aucune fiche consultée sur la période.</div>`}
+    </div>
+    <div class="card"><h2>Offre et demande par ville</h2><p class="sub">Annonces en ligne, vues de fiches sur la période et loyer médian au mois</p>
+      <table class="num"><thead><tr><th>Ville</th><th class="r">Annonces</th><th class="r">Vues</th><th class="r">Vues / annonce</th><th class="r">Médian / mois</th></tr></thead><tbody>${d.cities.map(v=>`<tr><td>${esc(v.ville)}</td><td class="r">${v.annonces}</td><td class="r">${v.vues}</td><td class="r">${v.annonces?nf(v.vues/v.annonces):"—"}</td><td class="r">${v.medianeMois?money(v.medianeMois):"—"}</td></tr>`).join("")}</tbody></table>
+    </div>
+  </div>
+  <div class="row r3">
+    <div class="card"><h2>Offre</h2><p class="sub">Annonces actuellement en ligne</p>
+      <div class="mini num"><div><b>${nf(d.supply.active)}</b><span>en ligne</span></div><div><b>${nf(d.supply.real)}</b><span>réelles (${nf(d.supply.examples)} exemples)</span></div>
+      <div><b>${money(d.supply.medianMois)}</b><span>loyer médian / mois</span></div><div><b>${money(d.supply.medianNuit)}</b><span>prix médian / nuit</span></div>
+      <div><b>${nf(d.supply.nuit)}</b><span>locations à la nuit</span></div><div><b>${nf(d.supply.hidden)}</b><span>annonces masquées</span></div></div>
+    </div>
+    <div class="card"><h2>Communauté</h2><p class="sub">Depuis le lancement</p>
+      <div class="mini num"><div><b>${nf(d.community.users)}</b><span>comptes</span></div><div><b>${nf(d.community.owners)}</b><span>propriétaires</span></div>
+      <div><b>${nf(d.community.tenants)}</b><span>locataires</span></div><div><b>${nf(d.community.favoris)}</b><span>favoris</span></div>
+      <div><b>${nf(d.community.demandes)}</b><span>demandes de visite</span></div><div><b>${nf(d.community.messages)}</b><span>messages de contact</span></div></div>
+    </div>
+    <div class="card"><h2>Recherches fréquentes</h2><p class="sub">Depuis la barre de recherche de l'accueil</p>${bars(d.searches)}</div>
+  </div>
+  <div class="row r11">
+    <div class="card"><h2>Santé technique</h2><p class="sub">Limites de la version gratuite</p>
+      ${gauge("Google Drive (photos + Gmail)",d.health.drive?d.health.drive.used/d.health.drive.limit:null,d.health.drive?`${(d.health.drive.used/1e9).toFixed(2)} Go sur ${(d.health.drive.limit/1e9).toFixed(0)} Go`:"indisponible")}
+      ${gauge("Cellules de la feuille",d.health.cells/1e7,`${nf(d.health.cells)} sur 10 millions`)}
+      ${gauge("E-mails d'alerte utilisés aujourd'hui",d.health.mailLeft==null?null:1-d.health.mailLeft/100,d.health.mailLeft==null?"indisponible":`${d.health.mailLeft} restants`)}
+      <p class="sub" style="margin-top:10px">${nf(d.health.hitRows)} lignes dans l'onglet Visites · ${nf(c.erreurs)} erreur(s) sur la période</p>
+      ${d.health.errors.length?`<table><thead><tr><th>Date</th><th>Page</th><th>Erreur</th></tr></thead><tbody>${d.health.errors.map(e=>`<tr><td class="num">${new Date(e.date).toLocaleString("fr-FR",{dateStyle:"short",timeStyle:"short"})}</td><td>${esc(e.page)}</td><td>${esc(e.detail)}</td></tr>`).join("")}</tbody></table>`:""}
+    </div>
+    <div class="card"><h2>Derniers messages de contact</h2><p class="sub">Formulaire de la page Contact</p>
+      ${d.community.lastMessages.length?`<table><tbody>${d.community.lastMessages.map(m=>`<tr><td style="width:120px" class="num">${new Date(m.date).toLocaleDateString("fr-FR")}</td><td><b>${esc(m.nom)}</b><div>${esc(m.message)}</div></td></tr>`).join("")}</tbody></table>`:`<div class="empty">Aucun message pour l'instant.</div>`}
+    </div>
+  </div>`;
+  const labels=d.series.map(s=>new Date(s.day+"T12:00:00").toLocaleDateString("fr-FR",{day:"numeric",month:"short"}));
+  const grid={color:"#ECECF6"},tick={color:"#5C6185",font:{family:"Plus Jakarta Sans",size:11}};
+  const base={responsive:true,maintainAspectRatio:false,interaction:{mode:"index",intersect:false},plugins:{legend:{position:"bottom",labels:{usePointStyle:true,boxWidth:8,color:"#13183A",font:{family:"Plus Jakarta Sans",size:12}}},tooltip:{backgroundColor:"#0C1C4F",padding:10,titleFont:{family:"Outfit"},bodyFont:{family:"Plus Jakarta Sans"}}},scales:{x:{grid:{display:false},ticks:{...tick,maxTicksLimit:10}},y:{beginAtZero:true,grid,ticks:{...tick,precision:0},border:{display:false}}}};
+  charts.push(new Chart($("#cTraffic"),{type:"line",data:{labels,datasets:[
+    {label:"Visiteurs uniques",data:d.series.map(s=>s.visitors),borderColor:"#2F5BD3",backgroundColor:"rgba(47,91,211,.10)",fill:true,borderWidth:2,pointRadius:0,pointHoverRadius:5,tension:.3},
+    {label:"Pages vues",data:d.series.map(s=>s.pageviews),borderColor:"#E8890C",borderWidth:2,pointRadius:0,pointHoverRadius:5,tension:.3,borderDash:[5,4]}]},options:base}));
+  charts.push(new Chart($("#cContacts"),{type:"bar",data:{labels,datasets:[{label:"Contacts",data:d.series.map(s=>s.contacts),backgroundColor:"#1F9D6B",borderRadius:4,maxBarThickness:18}]},options:{...base,plugins:{...base.plugins,legend:{display:false}}}}));
+}
+function gauge(label,ratio,txt){
+  const r=ratio==null?0:Math.max(0,Math.min(1,ratio));const col=r>.9?"var(--crit)":r>.75?"var(--warn)":"var(--good)";
+  return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px"><span>${label}</span><span class="num" style="color:var(--muted)">${txt}</span></div><div class="gauge"><i style="width:${Math.max(2,r*100)}%;background:${col}"></i></div></div>`;
+}
+function load(){
+  $("#refresh").disabled=true;$("#refresh").textContent="Chargement…";
+  google.script.run.withSuccessHandler(d=>{render(d);$("#refresh").disabled=false;$("#refresh").textContent="Actualiser";})
+    .withFailureHandler(e=>{$("#root").innerHTML=`<div class="err">Impossible de charger les indicateurs : ${esc(e.message||e)}</div>`;$("#refresh").disabled=false;$("#refresh").textContent="Réessayer";})
+    .getData(days);
+}
+document.querySelectorAll("[data-d]").forEach(b=>b.addEventListener("click",()=>{days=+b.dataset.d;document.querySelectorAll("[data-d]").forEach(x=>x.setAttribute("aria-pressed",x===b));load();}));
+$("#refresh").addEventListener("click",load);
+setInterval(load,5*60*1000);
+load();
+</script>
+</body>
+</html>

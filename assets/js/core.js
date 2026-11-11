@@ -203,7 +203,7 @@
     let rows;
     if (!DEMO) {
       const r = await fetch(CFG.API_URL + "?action=annonces&t=" + Date.now());
-      if (!r.ok) throw new Error("Les annonces ne sont pas joignables (" + r.status + ").");
+      if (!r.ok) { L.track("erreur", { detail: "chargement annonces " + r.status }); throw new Error("Les annonces ne sont pas joignables (" + r.status + ")."); }
       rows = L.parseCSV(await r.text()).map(normalize);
     } else {
       const r = await fetch("data/annonces.csv", { cache: "no-store" });
@@ -226,17 +226,26 @@
       const r = await fetch(CFG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({ action }, data || {})) });
       const out = await r.json().catch(() => ({ ok: false, error: "Réponse illisible du serveur." }));
       if (!out.ok) throw new Error(out.error || "Erreur inconnue.");
+      L.track("contact");
       return out;
     }
     if (!s) throw Object.assign(new Error("Connectez-vous pour continuer."), { code: "auth" });
     if (!L.tokenValid(s)) throw Object.assign(new Error("Votre session Google a expiré. Reconnectez-vous."), { code: "reauth" });
     const r = await fetch(CFG.API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(Object.assign({ action, idToken: s.idToken }, data || {})) });
     let out; try { out = await r.json(); } catch (_) { throw new Error("Réponse illisible du serveur. Vérifiez l'URL API_URL."); }
-    if (!out.ok) throw Object.assign(new Error(out.error || "Erreur inconnue."), { code: out.code || "" });
+    if (!out.ok) { L.track("erreur", { detail: action + ": " + (out.error || "") }); throw Object.assign(new Error(out.error || "Erreur inconnue."), { code: out.code || "" }); }
     if (/Listing|createListing|deleteListing|updateListing/.test(action)) listingsCache = null;
+    trackApi(action, data, out);
     return out;
   };
 
+  function trackApi(action, d, out) {
+    d = d || {};
+    if (action === "toggleFavorite" && out.favorite) L.track("favori", { annonce: d.annonceId });
+    else if (action === "sendRequest") L.track("demande", { annonce: d.annonceId });
+    else if (action === "createListing") L.track("publication", { annonce: out.id, detail: (d.listing && d.listing.ville) || "" });
+    else if (action === "login") L.track("connexion", { detail: (out.user && out.user.role) || d.role || "" });
+  }
   /* --- mode démo : imite le script Google Apps Script dans le navigateur --- */
   function demoApi(action, d, s) {
     const need = () => { if (!s) throw Object.assign(new Error("Connectez-vous pour continuer."), { code: "auth" }); return s; };
@@ -286,6 +295,60 @@
       default: throw new Error("Action inconnue : " + action);
     }
   }
+
+  /* ================= mesure d'audience (anonyme) ================= */
+  // Aucun cookie publicitaire, aucune adresse IP : un identifiant aléatoire par navigateur et par visite.
+  // Pour ne pas compter vos propres visites : ouvrez une page du site avec ?nostat=1 (et ?nostat=0 pour annuler).
+  (function () {
+    const q = new URLSearchParams(location.search).get("nostat");
+    if (q === "1") store.set("nostat", true); else if (q === "0") store.del("nostat");
+  })();
+  const rid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+  function visitorId() { let v = store.get("vid", ""); if (!v) { v = rid(); store.set("vid", v); } return v; }
+  function sessionId() {
+    try {
+      const now = Date.now(); let s = JSON.parse(sessionStorage.getItem("lakay_sid") || "null");
+      if (!s || now - s.t > 30 * 60 * 1000) s = { id: rid(), t: now };
+      s.t = now; sessionStorage.setItem("lakay_sid", JSON.stringify(s)); return s.id;
+    } catch (_) { return "na"; }
+  }
+  function source() {
+    const utm = new URLSearchParams(location.search).get("utm_source");
+    if (utm) return utm.toLowerCase().slice(0, 30);
+    let h = ""; try { h = document.referrer ? new URL(document.referrer).hostname : ""; } catch (_) {}
+    if (!h || h === location.hostname) return "direct";
+    if (/google\./.test(h)) return "google";
+    if (/facebook|fb\.|messenger/.test(h)) return "facebook";
+    if (/instagram/.test(h)) return "instagram";
+    if (/whatsapp|wa\.me/.test(h)) return "whatsapp";
+    if (/tiktok/.test(h)) return "tiktok";
+    if (/bing|yahoo|duckduckgo|qwant|ecosia/.test(h)) return "autre moteur";
+    if (/t\.co$|twitter|x\.com/.test(h)) return "x";
+    return h.replace(/^www\./, "").slice(0, 40);
+  }
+  const device = () => (/iPad|Tablet/i.test(navigator.userAgent) ? "tablette" : /Mobi|Android|iPhone/i.test(navigator.userAgent) ? "mobile" : "ordinateur");
+  L.track = function (type, extra) {
+    if (DEMO || store.get("nostat", false)) return;
+    extra = extra || {};
+    const body = {
+      action: "hit", t: type, p: document.body.dataset.page || location.pathname.split("/").pop() || "index",
+      a: extra.annonce || L.param("id") || "", s: sessionStorage.getItem("lakay_src") || source(), d: device(),
+      z: (Intl.DateTimeFormat().resolvedOptions().timeZone || ""), l: (navigator.language || "").slice(0, 10),
+      v: visitorId(), x: sessionId(), detail: String(extra.detail || "").slice(0, 200)
+    };
+    try { sessionStorage.setItem("lakay_src", body.s); } catch (_) {}
+    try { fetch(CFG.API_URL, { method: "POST", mode: "no-cors", keepalive: true, headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body) }); } catch (_) {}
+  };
+  // Page vue
+  const firePV = () => L.track("pageview");
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", firePV); else firePV();
+  // Clic sur un lien WhatsApp (principal contact entre locataire et propriétaire)
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest('a[href*="wa.me"]'); if (!a) return;
+    L.track("whatsapp", { annonce: L.param("id"), detail: a.closest(".socials") ? "contact LakayRent" : "propriétaire" });
+  }, true);
+  // Erreurs JavaScript
+  window.addEventListener("error", (e) => L.track("erreur", { detail: "JS: " + (e.message || "") }));
 
   /* ================= favoris ================= */
   L.favs = () => store.get("favs", []);

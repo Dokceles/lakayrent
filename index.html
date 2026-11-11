@@ -8,7 +8,7 @@
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css?v=8">
+<link rel="stylesheet" href="assets/css/style.css?v=9">
 </head>
 <body data-page="home">
 <header id="site-header"></header>
@@ -119,8 +119,8 @@
 </main>
 
 <footer id="site-footer"></footer>
-<script src="assets/js/config.js?v=8"></script>
-<script src="assets/js/core.js?v=8"></script>
+<script src="assets/js/config.js?v=9"></script>
+<script src="assets/js/core.js?v=9"></script>
 <script>
 (function(){
   const L=Lakay,$=L.$,esc=L.esc;
@@ -135,6 +135,7 @@
   $("#search").addEventListener("submit",e=>{
     e.preventDefault();const p=new URLSearchParams();
     if($("#sVille").value)p.set("ville",$("#sVille").value);if($("#sType").value)p.set("type",$("#sType").value);if($("#sMax").value)p.set("max",$("#sMax").value);
+    Lakay.track("recherche",{detail:[$("#sVille").value||"Tout Haïti",$("#sType").value||"tous types",$("#sMax").value?("max "+$("#sMax").value):""].filter(Boolean).join(" · ")});
     location.href="annonces.html"+(p.toString()?"?"+p:"");
   });
   function stats(list){
